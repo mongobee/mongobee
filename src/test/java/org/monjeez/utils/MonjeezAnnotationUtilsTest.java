@@ -2,6 +2,7 @@ package org.monjeez.utils;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.monjeez.changeset.ChangeEntry;
 import org.monjeez.test.changelogs.MonjeezUtilsTestResource;
 
 import java.lang.reflect.Method;
@@ -36,6 +37,28 @@ public class MonjeezAnnotationUtilsTest {
     
     // then
     Assert.assertTrue(foundMethods != null && foundMethods.size() == 2);
+    
+    
+  }
+  
+  @Test
+  public void shouldCreateEntry(){
+    
+    // given
+    List<Method> foundMethods = fetchChangesetsAt(MonjeezUtilsTestResource.class);
+
+    for (Method foundMethod : foundMethods) {
+    
+      // when
+      ChangeEntry entry = MonjeezAnnotationUtils.createChangeEntryFor(foundMethod);
+      
+      // then
+      Assert.assertEquals("lstolowski", entry.getAuthor());
+      Assert.assertEquals(MonjeezUtilsTestResource.class.getName(), entry.getChangelogClass());
+      Assert.assertNotNull(entry.getTimestamp());
+      Assert.assertNotNull(entry.getChangeId());
+      Assert.assertNotNull(entry.getChangesetMethodName());
+    }
   }
   
   

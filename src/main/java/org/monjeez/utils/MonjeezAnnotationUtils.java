@@ -9,6 +9,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -34,22 +35,23 @@ public class MonjeezAnnotationUtils {
     return methods;
   }
   
-  public static Annotation fetchChangesetAnnotation(Method method){
-    for (Annotation annotation : method.getAnnotations()) {
-      if (annotation instanceof Changeset){
-        return annotation;
-      }
-    }
-    return null;
-  }
   
-//  public static ChangeEntry createChangeEntryFor(Method changesetMethod){
-//
-//    Annotation annotation = fetchChangesetAnnotation(changesetMethod);
-//    
-//    return new ChangeEntry(annotation)
-//
-//
-//  }
+  public static ChangeEntry createChangeEntryFor(Method changesetMethod){
+
+    if (changesetMethod.isAnnotationPresent(Changeset.class)){
+      Changeset annotation = changesetMethod.getAnnotation(Changeset.class);
+  
+      return new ChangeEntry(
+                      annotation.id(), 
+                      annotation.author(), 
+                      new Date(), 
+                      changesetMethod.getDeclaringClass().getName(), 
+                      changesetMethod.getName()
+                  );
+      
+    } else {
+      return null;
+    }
+  }
   
 }

@@ -1,7 +1,34 @@
 package org.monjeez;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.monjeez.test.changelogs.MonjeezUtilsTestResource;
 
+import java.lang.reflect.InvocationTargetException;
+import java.net.UnknownHostException;
+
+@Ignore
 public class MonjeezTest {
+  
+  private Monjeez runner;
+  
+  @Before
+  public void initRunner(){
+    runner = new Monjeez();
+    
+    runner.setDbName("monjeeztest");
+    runner.setHost("localhost");
+    runner.setEnabled(true);
+    runner.setChangelogsBasePackage(MonjeezUtilsTestResource.class.getPackage().getName());
+    
+  }
+  
+  @Test
+  public void executeSample() throws Exception {
+    
+    runner.execute();
+    
+  }
 
 }

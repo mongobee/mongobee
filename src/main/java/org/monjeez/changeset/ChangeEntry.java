@@ -6,11 +6,15 @@ import com.mongodb.DBObject;
 import java.util.Date;
 
 /**
- * Entry in the changes collection log {@link org.monjeez.Monjeez#MONJEEZ_CHANGELOG_COLLECTION}
+ * Entry in the changes collection log {@link ChangeEntry#MONJEEZ_CHANGELOG_COLLECTION} <br/>
+ * Type: entity class.
  * @author lstolowski
  * @since 27/07/2014
  */
 public class ChangeEntry {
+  public static final String MONJEEZ_CHANGELOG_COLLECTION = "monjeezlog";
+
+  private long _id;
   
   private String changeId;
   private String author;
@@ -26,7 +30,8 @@ public class ChangeEntry {
     this.changesetMethodName = changesetMethodName;
   }
   
-  public DBObject buildDBObject(){
+  
+  public DBObject buildFullDBObject(){
     BasicDBObject entry = new BasicDBObject();
     
     entry.append("changeId", changeId)
@@ -38,4 +43,38 @@ public class ChangeEntry {
     return entry;
   }
   
+  public DBObject buildLocatingDBObject(){
+    return new BasicDBObject()
+                  .append("changeId", changeId)
+                  .append("author", author);
+  }
+
+
+  @Override
+  public String toString() {
+    return "[Changeset: id=" + changeId +
+            ", author=" + author +
+            ", changelogClass=" + changelogClass +
+            ", changesetMethod=" + changesetMethodName + "]";
+  }
+
+  public String getChangeId() {
+    return changeId;
+  }
+
+  public String getAuthor() {
+    return author;
+  }
+
+  public Date getTimestamp() {
+    return timestamp;
+  }
+
+  public String getChangelogClass() {
+    return changelogClass;
+  }
+
+  public String getChangesetMethodName() {
+    return changesetMethodName;
+  }
 }
