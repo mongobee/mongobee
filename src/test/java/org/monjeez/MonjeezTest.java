@@ -5,9 +5,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.monjeez.test.changelogs.MonjeezUtilsTestResource;
 
-import java.lang.reflect.InvocationTargetException;
-import java.net.UnknownHostException;
-
 @Ignore
 public class MonjeezTest {
   

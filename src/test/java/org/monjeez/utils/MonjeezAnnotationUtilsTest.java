@@ -21,7 +21,7 @@ public class MonjeezAnnotationUtilsTest {
   @Test
   public void shouldFindChangelogClasses(){
     // given
-    String scanPackage = org.monjeez.test.changelogs.Package.class.getPackage().getName();
+    String scanPackage = MonjeezUtilsTestResource.class.getPackage().getName();
     // when
     Set<Class<?>> foundClasses = fetchChangelogsAt(scanPackage);
     // then
@@ -37,7 +37,6 @@ public class MonjeezAnnotationUtilsTest {
     
     // then
     Assert.assertTrue(foundMethods != null && foundMethods.size() == 2);
-    
     
   }
   
@@ -60,6 +59,5 @@ public class MonjeezAnnotationUtilsTest {
       Assert.assertNotNull(entry.getChangesetMethodName());
     }
   }
-  
   
 }

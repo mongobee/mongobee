@@ -9,7 +9,7 @@
     
     <groupId>org.monjeez</groupId>
     <artifactId>monjeez</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.beta-SNAPSHOT</version>
     <!--<packaging>jar</packaging>-->
 
     <properties>
@@ -26,11 +26,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
             <version>${spring.version}</version>
         </dependency>
         <dependency>

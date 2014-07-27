@@ -5,7 +5,6 @@ import org.monjeez.changeset.Changelog;
 import org.monjeez.changeset.Changeset;
 import org.reflections.Reflections;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
