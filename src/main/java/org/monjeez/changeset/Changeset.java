@@ -30,11 +30,11 @@ public @interface Changeset {
    * Executes the change set on every monjeez's execution, even if it has been run before 
    * @return
    */
-  public String runAlways(); // default false
+  public boolean runAlways() default false;
 
   /**
    * Executes the change the first time it is seen and each time the change set has been changed 
    * @return
    */
-  public String runOnChange(); // default false
+  public boolean runOnChange() default false;
 }
