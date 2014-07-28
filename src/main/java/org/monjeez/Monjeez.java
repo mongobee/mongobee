@@ -142,7 +142,7 @@ public class Monjeez  implements InitializingBean {
     MongoClient mongoClient;
     if (auth != null) {
       MongoCredential credentials = MongoCredential.createMongoCRCredential(
-              auth.getDbName(),
+              auth.getUsername(),
               isNotBlank(auth.getDbName()) ? auth.getDbName() : dbName,
               auth.getPassword().toCharArray());
       mongoClient = new MongoClient(new ServerAddress(host), asList(credentials));

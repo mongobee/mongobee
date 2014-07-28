@@ -17,7 +17,7 @@
         <url>git@github.com:aaranost/monjeez.git</url>
         <tag>HEAD</tag>
   </scm>
-    <!--
+ 
   <distributionManagement>
         <snapshotRepository>
             <id>snapshots</id>
@@ -31,8 +31,9 @@
             <url>${nexus.root}/content/repositories/releases/</url>
         </repository>
     </distributionManagement>
-        -->
+
     <properties>
+        <nexus.root>http://nexus.rz.is24.loc</nexus.root>
         <spring.version>4.0.6.RELEASE</spring.version>
     </properties>
     
