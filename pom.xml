@@ -15,24 +15,24 @@
         <connection>scm:git:git@github.com:aaranost/monjeez.git</connection>
         <developerConnection>scm:git:git@github.com:aaranost/monjeez.git</developerConnection>
         <url>git@github.com:aaranost/monjeez.git</url>
-   
-    <tag>HEAD</tag>
+        <tag>HEAD</tag>
   </scm>
+    <!--
   <distributionManagement>
         <snapshotRepository>
             <id>snapshots</id>
             <name>Snapshots</name>
-            <url>${is24.nexus.root}/content/repositories/snapshots/</url>
+            <url>${nexus.root}/content/repositories/snapshots/</url>
             <uniqueVersion>false</uniqueVersion>
         </snapshotRepository>
         <repository>
             <id>releases</id>
             <name>Releases</name>
-            <url>${is24.nexus.root}/content/repositories/releases/</url>
+            <url>${nexus.root}/content/repositories/releases/</url>
         </repository>
-    </distributionManagement>    
+    </distributionManagement>
+        -->
     <properties>
- 	<is24.nexus.root>http://nexus.rz.is24.loc</is24.nexus.root>
         <spring.version>4.0.6.RELEASE</spring.version>
     </properties>
     
