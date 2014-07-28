@@ -15,7 +15,7 @@
         <connection>scm:git:git@github.com:aaranost/monjeez.git</connection>
         <developerConnection>scm:git:git@github.com:aaranost/monjeez.git</developerConnection>
         <url>git@github.com:aaranost/monjeez.git</url>
-      <tag>monjeez-0.1.beta</tag>
+    <tag>monjeez-0.1.beta1</tag>
   </scm>
     
     <properties>
