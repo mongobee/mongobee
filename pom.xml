@@ -8,14 +8,15 @@
     
     <groupId>org.monjeez</groupId>
     <artifactId>monjeez</artifactId>
-    <version>0.1.beta-SNAPSHOT</version>
+    <version>0.1.beta</version>
     <!--<packaging>jar</packaging>-->
 
     <scm>
         <connection>scm:git:git@github.com:aaranost/monjeez.git</connection>
         <developerConnection>scm:git:git@github.com:aaranost/monjeez.git</developerConnection>
         <url>git@github.com:aaranost/monjeez.git</url>
-    </scm>
+      <tag>monjeez-0.1.beta</tag>
+  </scm>
     
     <properties>
         <spring.version>4.0.6.RELEASE</spring.version>
