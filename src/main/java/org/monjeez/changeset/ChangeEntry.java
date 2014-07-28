@@ -12,10 +12,8 @@ import java.util.Date;
  * @since 27/07/2014
  */
 public class ChangeEntry {
-  public static final String MONJEEZ_CHANGELOG_COLLECTION = "monjeezlog";
+  public static final String MONJEEZ_CHANGELOG_COLLECTION = "dbchangelog";
 
-  private long _id;
-  
   private String changeId;
   private String author;
   private Date timestamp;

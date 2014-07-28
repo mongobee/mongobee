@@ -42,6 +42,8 @@ public class Monjeez  implements InitializingBean {
   private MongoAuth auth;
   private String changelogsBasePackage;
 
+  private boolean jobExecuted; // flag to ensure that monjeez is executed once
+  
   private ChangeEntryDao changeEntryDao;
 
 
@@ -69,15 +71,20 @@ public class Monjeez  implements InitializingBean {
       logger.info("Monjeez is disabled. Exiting.");
       return;
     }
+    if (jobExecuted){
+      return;
+    } else {
+      jobExecuted = true;
+    }
+           
     validateConfig();
-    
+
+    logger.info("Monjeez has started the data migration sequence..");
     
     MongoClient mongoClient = getMongoClient();
     DB db = mongoClient.getDB(dbName);
     changeEntryDao = new ChangeEntryDao(db);
     
-    changeEntryDao.checkConnection();
-
     for (Class<?> changelogClass : fetchChangelogsAt(changelogsBasePackage)) {
       
       Object changesetInstance = changelogClass.getConstructor().newInstance();
@@ -89,21 +96,23 @@ public class Monjeez  implements InitializingBean {
         ChangeEntry changeEntry = createChangeEntryFor(changesetMethod);
         if (changeEntryDao.isNewChange(changeEntry)) {
 
-          if (changesetMethod.getParameterCount() == 1 && changesetMethod.getParameterTypes()[0].equals(DB.class)) {
+          if (changesetMethod.getParameterTypes().length == 1 
+                      && changesetMethod.getParameterTypes()[0].equals(DB.class)) {
             logger.debug("method with DB argument");
 
             changesetMethod.invoke(changesetInstance, db);
             changeEntryDao.save(changeEntry);
 
           }
-          else if (changesetMethod.getParameterCount() == 1 && changesetMethod.getParameterTypes()[0].equals(Jongo.class)) {
+          else if (changesetMethod.getParameterTypes().length == 1 
+                      && changesetMethod.getParameterTypes()[0].equals(Jongo.class)) {
             logger.debug("method with Jongo argument");
 
             changesetMethod.invoke(changesetInstance, new Jongo(db));
             changeEntryDao.save(changeEntry);
 
           }
-          else if (changesetMethod.getParameterCount() == 0) {
+          else if (changesetMethod.getParameterTypes().length == 0) {
             logger.debug("method with no params");
             
             changesetMethod.invoke(changesetInstance);
@@ -117,6 +126,7 @@ public class Monjeez  implements InitializingBean {
       }
 
     }
+    logger.info("Monjeez has finished his job.");
   }
 
   private void validateConfig() {

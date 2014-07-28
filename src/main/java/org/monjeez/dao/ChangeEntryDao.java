@@ -1,5 +1,7 @@
 package org.monjeez.dao;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.CommandResult;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -20,16 +22,6 @@ public class ChangeEntryDao {
   public ChangeEntryDao(DB db) {
     this.db = db;
   }
-  
-  public boolean checkConnection(){
-    try {
-      return db.collectionExists(MONJEEZ_CHANGELOG_COLLECTION);
-  
-    } catch (Exception e){
-      throw new MonjeezConnectionException("Connection problems occured", e);
-    }
-  }
-  
   
   public boolean isNewChange(ChangeEntry changeEntry) {
     DBCollection monjeezlog = db.getCollection(MONJEEZ_CHANGELOG_COLLECTION);
