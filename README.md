@@ -17,7 +17,9 @@ Monjeez provides new approach for adding changes (change sets) based on Java cla
 
 Monjeez is still in beta phase! There are still some things to implement but it grows :)
 
+### How to use?
 
+Check out [wiki page](https://github.com/aaranost/monjeez/wiki/How-to-use-Monjeez)
 
 
 
