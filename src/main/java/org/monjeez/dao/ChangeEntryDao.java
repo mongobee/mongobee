@@ -1,11 +1,12 @@
 package org.monjeez.dao;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.WriteResult;
 import org.monjeez.changeset.ChangeEntry;
 import org.monjeez.exception.MonjeezConnectionException;
+
 import static org.monjeez.changeset.ChangeEntry.MONJEEZ_CHANGELOG_COLLECTION;
 
 /**
@@ -30,15 +31,15 @@ public class ChangeEntryDao {
   }
   
   
-  public boolean isChangeNew(ChangeEntry changeEntry) {
+  public boolean isNewChange(ChangeEntry changeEntry) {
     DBCollection monjeezlog = db.getCollection(MONJEEZ_CHANGELOG_COLLECTION);
     DBObject entry = monjeezlog.findOne(changeEntry.buildLocatingDBObject());
 
     return entry == null ? true : false;
   }
 
-  public void save(ChangeEntry changeEntry) {
+  public WriteResult save(ChangeEntry changeEntry) {
     DBCollection monjeezlog = db.getCollection(MONJEEZ_CHANGELOG_COLLECTION);
-    monjeezlog.save(changeEntry.buildFullDBObject());
+    return monjeezlog.save(changeEntry.buildFullDBObject());
   }
 }

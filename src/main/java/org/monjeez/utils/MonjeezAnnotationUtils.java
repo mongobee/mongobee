@@ -17,6 +17,7 @@ import java.util.Set;
  * @since 27/07/2014
  */
 public class MonjeezAnnotationUtils {
+  
   public static Set<Class<?>> fetchChangelogsAt(String changelogsBasePackage){
     Reflections reflections = new Reflections(changelogsBasePackage);
     Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Changelog.class);
@@ -36,7 +37,6 @@ public class MonjeezAnnotationUtils {
   
   
   public static ChangeEntry createChangeEntryFor(Method changesetMethod){
-
     if (changesetMethod.isAnnotationPresent(Changeset.class)){
       Changeset annotation = changesetMethod.getAnnotation(Changeset.class);
   

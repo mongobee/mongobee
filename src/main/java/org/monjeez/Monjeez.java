@@ -54,7 +54,16 @@ public class Monjeez  implements InitializingBean {
     execute();
   }
 
-  void execute() throws UnknownHostException, NoSuchMethodException, IllegalAccessException, 
+  /**
+   * Executing migration
+   * 
+   * @throws UnknownHostException
+   * @throws NoSuchMethodException
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   * @throws InstantiationException
+   */
+  public void execute() throws UnknownHostException, NoSuchMethodException, IllegalAccessException, 
                         InvocationTargetException, InstantiationException {
     if(!isEnabled()){
       logger.info("Monjeez is disabled. Exiting.");
@@ -78,7 +87,7 @@ public class Monjeez  implements InitializingBean {
       for (Method changesetMethod : changesetMethods) {
 
         ChangeEntry changeEntry = createChangeEntryFor(changesetMethod);
-        if (changeEntryDao.isChangeNew(changeEntry)) {
+        if (changeEntryDao.isNewChange(changeEntry)) {
 
           if (changesetMethod.getParameterCount() == 1 && changesetMethod.getParameterTypes()[0].equals(DB.class)) {
             logger.debug("method with DB argument");

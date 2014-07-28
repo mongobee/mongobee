@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Classes containing particular changesets @Changeset
+ * Classes containing particular changesets (@{@link org.monjeez.changeset.Changeset})
  * @author lstolowski
  * @since 27/07/2014
  * @see org.monjeez.changeset.Changeset
@@ -14,4 +14,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Changelog {
+  String order() default "";
 }
