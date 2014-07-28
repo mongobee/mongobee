@@ -12,6 +12,12 @@
     <version>0.1.beta-SNAPSHOT</version>
     <!--<packaging>jar</packaging>-->
 
+    <scm>
+        <connection>scm:git:git@github.com:aaranost/monjeez.git</connection>
+        <developerConnection>scm:git:git@github.com:aaranost/monjeez.git</developerConnection>
+        <url>git@github.com:aaranost/monjeez.git</url>
+    </scm>
+    
     <properties>
         <spring.version>4.0.6.RELEASE</spring.version>
     </properties>
