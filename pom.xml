@@ -8,17 +8,31 @@
     
     <groupId>org.monjeez</groupId>
     <artifactId>monjeez</artifactId>
-    <version>0.2.beta-SNAPSHOT</version>
+    <version>0.1.beta</version>
     <!--<packaging>jar</packaging>-->
 
     <scm>
         <connection>scm:git:git@github.com:aaranost/monjeez.git</connection>
         <developerConnection>scm:git:git@github.com:aaranost/monjeez.git</developerConnection>
         <url>git@github.com:aaranost/monjeez.git</url>
-    <tag>HEAD</tag>
+   
+    <tag>monjeez-0.1.beta2</tag>
   </scm>
-    
+  <distributionManagement>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>${is24.nexus.root}/content/repositories/snapshots/</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+        <repository>
+            <id>releases</id>
+            <name>Releases</name>
+            <url>${is24.nexus.root}/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>    
     <properties>
+ 	<is24.nexus.root>http://nexus.rz.is24.loc</is24.nexus.root>
         <spring.version>4.0.6.RELEASE</spring.version>
     </properties>
     
