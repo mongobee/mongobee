@@ -122,6 +122,9 @@ public class Monjeez  implements InitializingBean {
           else {
             throw new MonjeezChangesetException("Changeset method has wrong arguments list: " + changeEntry);
           }
+          logger.info(changeEntry + " applied");
+        } else {
+          logger.info(changeEntry + " passed over");
         }
       }
 
@@ -143,8 +146,9 @@ public class Monjeez  implements InitializingBean {
     if (auth != null) {
       MongoCredential credentials = MongoCredential.createMongoCRCredential(
               auth.getUsername(),
-              isNotBlank(auth.getDbName()) ? auth.getDbName() : dbName,
-              auth.getPassword().toCharArray());
+              (isNotBlank(auth.getDbName())) ? auth.getDbName() : dbName,
+              (auth.getPassword() != null)   ? auth.getPassword().toCharArray() : new char[0]
+      );
       mongoClient = new MongoClient(new ServerAddress(host), asList(credentials));
     } else {
       mongoClient = new MongoClient(new ServerAddress(host));
