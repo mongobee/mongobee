@@ -3,22 +3,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Monjeez</name>
-    <description>MongoDB migration tool</description>
+    <name>mongobee</name>
+    <description>MongoDB data migration tool for Java</description>
     
-    <groupId>org.monjeez</groupId>
-    <artifactId>monjeez</artifactId>
-    <version>0.4.beta-SNAPSHOT</version>
-    <!--<packaging>jar</packaging>-->
+    <groupId>org.mongobee</groupId>
+    <artifactId>mongobee</artifactId>
+    <version>0.4-SNAPSHOT</version>
 
     <scm>
-        <connection>scm:git:git@github.com:aaranost/monjeez.git</connection>
-        <developerConnection>scm:git:git@github.com:aaranost/monjeez.git</developerConnection>
-        <url>git@github.com:aaranost/monjeez.git</url>
+        <connection>scm:git:git@github.com:aaranost/mongobee.git</connection>
+        <developerConnection>scm:git:git@github.com:aaranost/mongobee.git</developerConnection>
+        <url>git@github.com:aaranost/mongobee.git</url>
         <tag>HEAD</tag>
-  </scm>
+    </scm>
  
-  <distributionManagement>
+    <distributionManagement>
         <snapshotRepository>
             <id>snapshots</id>
             <name>Snapshots</name>
@@ -68,7 +67,6 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.7</version>
         </dependency>
-
 
         <!-- TEST -->
         <dependency>

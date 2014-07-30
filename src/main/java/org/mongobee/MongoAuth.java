@@ -1,4 +1,4 @@
-package org.monjeez;
+package org.mongobee;
 
 /**
  * @author lstolowski
@@ -12,7 +12,7 @@ public class MongoAuth {
 
   /**
    * Credentials for authentication <br/>
-   * User should be defined in the same database as defined in Monjeez runner
+   * User should be defined in the same database as defined in Mongobee runner
    * @param username the user's name
    * @param password the user's password
    */

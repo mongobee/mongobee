@@ -1,4 +1,4 @@
-package org.monjeez.changeset;
+package org.mongobee.changeset;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -6,13 +6,13 @@ import com.mongodb.DBObject;
 import java.util.Date;
 
 /**
- * Entry in the changes collection log {@link ChangeEntry#MONJEEZ_CHANGELOG_COLLECTION} <br/>
+ * Entry in the changes collection log {@link ChangeEntry#CHANGELOG_COLLECTION} <br/>
  * Type: entity class.
  * @author lstolowski
  * @since 27/07/2014
  */
 public class ChangeEntry {
-  public static final String MONJEEZ_CHANGELOG_COLLECTION = "dbchangelog";
+  public static final String CHANGELOG_COLLECTION = "dbchangelog";
 
   private String changeId;
   private String author;

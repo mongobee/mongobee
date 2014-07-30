@@ -1,8 +1,8 @@
-package org.monjeez.utils;
+package org.mongobee.utils;
 
-import org.monjeez.changeset.ChangeEntry;
-import org.monjeez.changeset.Changelog;
-import org.monjeez.changeset.Changeset;
+import org.mongobee.changeset.ChangeEntry;
+import org.mongobee.changeset.Changelog;
+import org.mongobee.changeset.Changeset;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Method;
@@ -16,7 +16,7 @@ import java.util.Set;
  * @author lstolowski
  * @since 27/07/2014
  */
-public class MonjeezAnnotationUtils {
+public class MongobeeAnnotationUtils {
   
   public static Set<Class<?>> fetchChangelogsAt(String changelogsBasePackage){
     Reflections reflections = new Reflections(changelogsBasePackage);

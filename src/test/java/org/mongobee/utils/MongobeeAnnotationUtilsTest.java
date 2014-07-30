@@ -1,27 +1,27 @@
-package org.monjeez.utils;
+package org.mongobee.utils;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import org.monjeez.changeset.ChangeEntry;
-import org.monjeez.test.changelogs.MonjeezUtilsTestResource;
+import org.mongobee.changeset.ChangeEntry;
+import org.mongobee.test.changelogs.MongobeeUtilsTestResource;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 
-import static org.monjeez.utils.MonjeezAnnotationUtils.fetchChangelogsAt;
-import static org.monjeez.utils.MonjeezAnnotationUtils.fetchChangesetsAt;
+import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangelogsAt;
+import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangesetsAt;
 
 /**
  * @author lstolowski
  * @since 27/07/2014
  */
-public class MonjeezAnnotationUtilsTest {
+public class MongobeeAnnotationUtilsTest {
   
   @Test
   public void shouldFindChangelogClasses(){
     // given
-    String scanPackage = MonjeezUtilsTestResource.class.getPackage().getName();
+    String scanPackage = MongobeeUtilsTestResource.class.getPackage().getName();
     // when
     Set<Class<?>> foundClasses = fetchChangelogsAt(scanPackage);
     // then
@@ -33,7 +33,7 @@ public class MonjeezAnnotationUtilsTest {
   public void shouldFindChangesetMethods(){
 
     // when
-    List<Method> foundMethods = fetchChangesetsAt(MonjeezUtilsTestResource.class);
+    List<Method> foundMethods = fetchChangesetsAt(MongobeeUtilsTestResource.class);
     
     // then
     Assert.assertTrue(foundMethods != null && foundMethods.size() == 2);
@@ -44,16 +44,16 @@ public class MonjeezAnnotationUtilsTest {
   public void shouldCreateEntry(){
     
     // given
-    List<Method> foundMethods = fetchChangesetsAt(MonjeezUtilsTestResource.class);
+    List<Method> foundMethods = fetchChangesetsAt(MongobeeUtilsTestResource.class);
 
     for (Method foundMethod : foundMethods) {
     
       // when
-      ChangeEntry entry = MonjeezAnnotationUtils.createChangeEntryFor(foundMethod);
+      ChangeEntry entry = MongobeeAnnotationUtils.createChangeEntryFor(foundMethod);
       
       // then
       Assert.assertEquals("lstolowski", entry.getAuthor());
-      Assert.assertEquals(MonjeezUtilsTestResource.class.getName(), entry.getChangelogClass());
+      Assert.assertEquals(MongobeeUtilsTestResource.class.getName(), entry.getChangelogClass());
       Assert.assertNotNull(entry.getTimestamp());
       Assert.assertNotNull(entry.getChangeId());
       Assert.assertNotNull(entry.getChangesetMethodName());

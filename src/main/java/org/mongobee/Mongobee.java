@@ -1,4 +1,4 @@
-package org.monjeez;
+package org.mongobee;
 
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
@@ -6,9 +6,9 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import org.apache.commons.lang3.StringUtils;
 import org.jongo.Jongo;
-import org.monjeez.changeset.ChangeEntry;
-import org.monjeez.dao.ChangeEntryDao;
-import org.monjeez.exception.MonjeezChangesetException;
+import org.mongobee.changeset.ChangeEntry;
+import org.mongobee.dao.ChangeEntryDao;
+import org.mongobee.exception.MongobeeChangesetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -20,18 +20,18 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.monjeez.utils.MonjeezAnnotationUtils.createChangeEntryFor;
-import static org.monjeez.utils.MonjeezAnnotationUtils.fetchChangelogsAt;
-import static org.monjeez.utils.MonjeezAnnotationUtils.fetchChangesetsAt;
+import static org.mongobee.utils.MongobeeAnnotationUtils.createChangeEntryFor;
+import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangelogsAt;
+import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangesetsAt;
 
 /**
- * Monjeez runner
+ * Mongobee runner
  * 
  * @author lstolowski
  * @since 26/07/2014
  */
-public class Monjeez  implements InitializingBean {
-  Logger logger = LoggerFactory.getLogger(Monjeez.class);
+public class Mongobee implements InitializingBean {
+  Logger logger = LoggerFactory.getLogger(Mongobee.class);
 
   private boolean enabled = false;
   
@@ -42,13 +42,13 @@ public class Monjeez  implements InitializingBean {
   private MongoAuth auth;
   private String changelogsBasePackage;
 
-  private boolean jobExecuted; // flag to ensure that monjeez is executed once
+  private boolean jobExecuted; // flag to ensure that mongobee is executed once per instance
   
   private ChangeEntryDao changeEntryDao;
 
 
   /**
-   * For Spring users: executing monjeez after bean is created in the Spring context
+   * For Spring users: executing mongobee after bean is created in the Spring context
    * @throws Exception
    */
   @Override
@@ -68,7 +68,7 @@ public class Monjeez  implements InitializingBean {
   public void execute() throws UnknownHostException, NoSuchMethodException, IllegalAccessException, 
                         InvocationTargetException, InstantiationException {
     if(!isEnabled()){
-      logger.info("Monjeez is disabled. Exiting.");
+      logger.info("Mongobee is disabled. Exiting.");
       return;
     }
     if (jobExecuted){
@@ -79,7 +79,7 @@ public class Monjeez  implements InitializingBean {
            
     validateConfig();
 
-    logger.info("Monjeez has started the data migration sequence..");
+    logger.info("Mongobee has started the data migration sequence..");
     
     MongoClient mongoClient = getMongoClient();
     DB db = mongoClient.getDB(dbName);
@@ -120,7 +120,7 @@ public class Monjeez  implements InitializingBean {
 
           } 
           else {
-            throw new MonjeezChangesetException("Changeset method has wrong arguments list: " + changeEntry);
+            throw new MongobeeChangesetException("Changeset method has wrong arguments list: " + changeEntry);
           }
           logger.info(changeEntry + " applied");
         } else {
@@ -129,7 +129,7 @@ public class Monjeez  implements InitializingBean {
       }
 
     }
-    logger.info("Monjeez has finished his job.");
+    logger.info("Mongobee has finished his job.");
   }
 
   private void validateConfig() {

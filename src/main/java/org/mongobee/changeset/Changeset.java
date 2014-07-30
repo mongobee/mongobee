@@ -1,4 +1,4 @@
-package org.monjeez.changeset;
+package org.mongobee.changeset;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Set of changes to be added to the DB. Many changesets are included in a changelog
  * @author lstolowski
  * @since 27/07/2014
- * @see org.monjeez.changeset.Changelog
+ * @see org.mongobee.changeset.Changelog
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -27,7 +27,7 @@ public @interface Changeset {
   public String id();      // must be set
 
   /**
-   * Executes the change set on every monjeez's execution, even if it has been run before 
+   * Executes the change set on every mongobee's execution, even if it has been run before
    * @return
    */
   public boolean runAlways() default false;

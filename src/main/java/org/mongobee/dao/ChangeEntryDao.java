@@ -1,15 +1,12 @@
-package org.monjeez.dao;
+package org.mongobee.dao;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.CommandResult;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
-import org.monjeez.changeset.ChangeEntry;
-import org.monjeez.exception.MonjeezConnectionException;
+import org.mongobee.changeset.ChangeEntry;
 
-import static org.monjeez.changeset.ChangeEntry.MONJEEZ_CHANGELOG_COLLECTION;
+import static org.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 
 /**
  * @author lstolowski
@@ -24,14 +21,14 @@ public class ChangeEntryDao {
   }
   
   public boolean isNewChange(ChangeEntry changeEntry) {
-    DBCollection monjeezlog = db.getCollection(MONJEEZ_CHANGELOG_COLLECTION);
+    DBCollection monjeezlog = db.getCollection(CHANGELOG_COLLECTION);
     DBObject entry = monjeezlog.findOne(changeEntry.buildLocatingDBObject());
 
     return entry == null ? true : false;
   }
 
   public WriteResult save(ChangeEntry changeEntry) {
-    DBCollection monjeezlog = db.getCollection(MONJEEZ_CHANGELOG_COLLECTION);
+    DBCollection monjeezlog = db.getCollection(CHANGELOG_COLLECTION);
     return monjeezlog.save(changeEntry.buildFullDBObject());
   }
 }
