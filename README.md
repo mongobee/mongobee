@@ -9,11 +9,11 @@ The concept is very similar to other db migration tools such as [Liquibase](http
 
 The goal is to keep this tool simple and comfortable to use.
 
-### What's new?
+### What's special?
 
 mongobee provides new approach for adding changes (change sets) based on Java classes and methods with appropriate annotations.
 
-### What is the status?
+### What's the status?
 
 mongobee is still in beta phase! There are still some things to implement but it grows :)
 
