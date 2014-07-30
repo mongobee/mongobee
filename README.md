@@ -1,4 +1,4 @@
-mongobee
+!(mongobee)(https://raw.githubusercontent.com/aaranost/mongobee/master/misc/mongobee_min.png "mongobee")
 =======
 
 ### What for?
