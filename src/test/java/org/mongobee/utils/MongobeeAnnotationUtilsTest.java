@@ -3,11 +3,10 @@ package org.mongobee.utils;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.mongobee.changeset.ChangeEntry;
-import org.mongobee.test.changelogs.MongobeeUtilsTestResource;
+import org.mongobee.test.changelogs.MongobeeTestResource;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Set;
 
 import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangelogsAt;
 import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangesetsAt;
@@ -21,9 +20,9 @@ public class MongobeeAnnotationUtilsTest {
   @Test
   public void shouldFindChangelogClasses(){
     // given
-    String scanPackage = MongobeeUtilsTestResource.class.getPackage().getName();
+    String scanPackage = MongobeeTestResource.class.getPackage().getName();
     // when
-    Set<Class<?>> foundClasses = fetchChangelogsAt(scanPackage);
+    List<Class<?>> foundClasses = fetchChangelogsAt(scanPackage);
     // then
     Assert.assertTrue(foundClasses != null && foundClasses.size() > 0);
     
@@ -33,10 +32,10 @@ public class MongobeeAnnotationUtilsTest {
   public void shouldFindChangesetMethods(){
 
     // when
-    List<Method> foundMethods = fetchChangesetsAt(MongobeeUtilsTestResource.class);
+    List<Method> foundMethods = fetchChangesetsAt(MongobeeTestResource.class);
     
     // then
-    Assert.assertTrue(foundMethods != null && foundMethods.size() == 2);
+    Assert.assertTrue(foundMethods != null && foundMethods.size() == 4);
     
   }
   
@@ -44,7 +43,7 @@ public class MongobeeAnnotationUtilsTest {
   public void shouldCreateEntry(){
     
     // given
-    List<Method> foundMethods = fetchChangesetsAt(MongobeeUtilsTestResource.class);
+    List<Method> foundMethods = fetchChangesetsAt(MongobeeTestResource.class);
 
     for (Method foundMethod : foundMethods) {
     
@@ -52,12 +51,12 @@ public class MongobeeAnnotationUtilsTest {
       ChangeEntry entry = MongobeeAnnotationUtils.createChangeEntryFor(foundMethod);
       
       // then
-      Assert.assertEquals("lstolowski", entry.getAuthor());
-      Assert.assertEquals(MongobeeUtilsTestResource.class.getName(), entry.getChangelogClass());
+      Assert.assertEquals("testuser", entry.getAuthor());
+      Assert.assertEquals(MongobeeTestResource.class.getName(), entry.getChangelogClass());
       Assert.assertNotNull(entry.getTimestamp());
       Assert.assertNotNull(entry.getChangeId());
       Assert.assertNotNull(entry.getChangesetMethodName());
     }
   }
-  
+
 }

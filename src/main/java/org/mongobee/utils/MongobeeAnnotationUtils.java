@@ -1,27 +1,41 @@
 package org.mongobee.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mongobee.changeset.ChangeEntry;
 import org.mongobee.changeset.Changelog;
 import org.mongobee.changeset.Changeset;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
+ * Utilities to deal with reflections and annotations
  * @author lstolowski
  * @since 27/07/2014
  */
 public class MongobeeAnnotationUtils {
   
-  public static Set<Class<?>> fetchChangelogsAt(String changelogsBasePackage){
+  public static List<Class<?>> fetchChangelogsAt(String changelogsBasePackage){
     Reflections reflections = new Reflections(changelogsBasePackage);
     Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Changelog.class);
-    return annotated;
+
+    List<Class<?>> annotatedSorted = new ArrayList<>(annotated);
+
+    Collections.sort(annotatedSorted, new Comparator<Class<?>>() {
+      @Override
+      public int compare(Class<?> o1, Class<?> o2) {
+        Changelog c1 = o1.getAnnotation(Changelog.class);
+        Changelog c2 = o2.getAnnotation(Changelog.class);
+
+        String val1 = StringUtils.isEmpty(c1.order()) ? o1.getCanonicalName() : c1.order();
+        String val2 = StringUtils.isEmpty(c2.order()) ? o2.getCanonicalName() : c2.order();
+
+        return val1.compareTo(val2);
+      }
+    });
+
+    return annotatedSorted;
   }
 
   public static List<Method> fetchChangesetsAt(final Class<?> type) {
@@ -32,6 +46,16 @@ public class MongobeeAnnotationUtils {
           methods.add(method);
         }
       }
+
+    Collections.sort(methods, new Comparator<Method>() {
+      @Override
+      public int compare(Method o1, Method o2) {
+        Changeset c1 = o1.getAnnotation(Changeset.class);
+        Changeset c2 = o2.getAnnotation(Changeset.class);
+        return c1.order().compareTo(c2.order());
+      }
+    });
+
     return methods;
   }
   

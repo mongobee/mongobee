@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Classes containing particular changesets (@{@link org.mongobee.changeset.Changeset})
+ * Class containing particular changesets (@{@link org.mongobee.changeset.Changeset})
  * @author lstolowski
  * @since 27/07/2014
  * @see org.mongobee.changeset.Changeset
@@ -14,5 +14,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Changelog {
+  /**
+   * Sequence that provide an order for changelog classes.
+   * If not set, then canonical name of the class is taken and sorted alphabetically, ascending.
+   */
   String order() default "";
 }

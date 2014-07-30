@@ -20,9 +20,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.mongobee.utils.MongobeeAnnotationUtils.createChangeEntryFor;
-import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangelogsAt;
-import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangesetsAt;
+import static org.mongobee.utils.MongobeeAnnotationUtils.*;
 
 /**
  * Mongobee runner
