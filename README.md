@@ -1,4 +1,4 @@
-mongobee
+![mongobee](https://raw.githubusercontent.com/aaranost/mongobee/master/misc/mongobee_min.png)
 =======
 
 ### What for?
@@ -21,6 +21,5 @@ mongobee is still in beta phase! There are still some things to implement but it
 
 Check out [wiki page](https://github.com/aaranost/mongobee/wiki/How-to-use-mongobee)
 
-!(mongobee)(https://raw.githubusercontent.com/aaranost/mongobee/master/misc/mongobee_min.png "mongobee")
 
 
