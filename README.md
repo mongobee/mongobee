@@ -21,5 +21,5 @@ mongobee is still in beta phase! There are still some things to implement but it
 
 Check out [wiki page](https://github.com/aaranost/mongobee/wiki/How-to-use-mongobee)
 
-
+[![Build Status](https://travis-ci.org/aaranost/mongobee.svg?branch=master)](https://travis-ci.org/aaranost/mongobee)
 
