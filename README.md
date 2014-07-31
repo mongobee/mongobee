@@ -1,6 +1,8 @@
 ![mongobee](https://raw.githubusercontent.com/aaranost/mongobee/master/misc/mongobee_min.png)
 =======
 
+# Project moved to: [github.com/mongobee/mongobee](https://github.com/mongobee/mongobee)
+
 ### What for?
 
 mongobee is a Java tool which can help you to *manage changes* in your MongoDB and *synchronize* them with your application.
