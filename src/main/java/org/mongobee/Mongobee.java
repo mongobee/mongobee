@@ -3,6 +3,7 @@ package org.mongobee;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
+import com.mongodb.MongoURI;
 import com.mongodb.ServerAddress;
 import org.apache.commons.lang3.StringUtils;
 import org.jongo.Jongo;
@@ -39,6 +40,7 @@ public class Mongobee implements InitializingBean {
   private String dbName;
   private MongoAuth auth;
   private String changelogsBasePackage;
+  private MongoURI mongoURI;
 
   private boolean jobExecuted; // flag to ensure that mongobee is executed once per instance
   
