@@ -1,7 +1,6 @@
 package org.mongobee;
 
 import com.mongodb.*;
-import org.apache.commons.lang3.StringUtils;
 import org.jongo.Jongo;
 import org.mongobee.changeset.ChangeEntry;
 import org.mongobee.dao.ChangeEntryDao;
@@ -19,7 +18,6 @@ import java.util.List;
 import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.mongobee.utils.MongobeeAnnotationUtils.*;
 
 /**
@@ -31,7 +29,7 @@ import static org.mongobee.utils.MongobeeAnnotationUtils.*;
 public class Mongobee implements InitializingBean {
   private static final Logger logger = LoggerFactory.getLogger(Mongobee.class);
 
-  private ChangeEntryDao changeEntryDao;
+  private ChangeEntryDao dao;
 
   private boolean enabled = true;
   private String changelogsScanPackage;
@@ -57,6 +55,7 @@ public class Mongobee implements InitializingBean {
   public Mongobee(MongoClientURI mongoClientURI) {
     this.mongoClientURI = mongoClientURI;
     this.setDbName(mongoClientURI.getDatabase());
+    this.dao = new ChangeEntryDao();
   }
 
   /**
@@ -118,9 +117,8 @@ public class Mongobee implements InitializingBean {
 
     logger.info("Mongobee has started the data migration sequence..");
     
-    DB db = connectMongoDb();
-    changeEntryDao = new ChangeEntryDao(db);
-    
+    DB db = dao.connectMongoDb(mongoClientURI, dbName);
+
     for (Class<?> changelogClass : fetchChangelogsAt(changelogsScanPackage)) {
       
       Object changesetInstance = changelogClass.getConstructor().newInstance();
@@ -130,14 +128,14 @@ public class Mongobee implements InitializingBean {
       for (Method changesetMethod : changesetMethods) {
 
         ChangeEntry changeEntry = createChangeEntryFor(changesetMethod);
-        if (changeEntryDao.isNewChange(changeEntry)) {
+        if (dao.isNewChange(changeEntry)) {
 
           if (changesetMethod.getParameterTypes().length == 1 
                       && changesetMethod.getParameterTypes()[0].equals(DB.class)) {
             logger.debug("method with DB argument");
 
             changesetMethod.invoke(changesetInstance, db);
-            changeEntryDao.save(changeEntry);
+            dao.save(changeEntry);
 
           }
           else if (changesetMethod.getParameterTypes().length == 1 
@@ -145,14 +143,14 @@ public class Mongobee implements InitializingBean {
             logger.debug("method with Jongo argument");
 
             changesetMethod.invoke(changesetInstance, new Jongo(db));
-            changeEntryDao.save(changeEntry);
+            dao.save(changeEntry);
 
           }
           else if (changesetMethod.getParameterTypes().length == 0) {
             logger.debug("method with no params");
             
             changesetMethod.invoke(changesetInstance);
-            changeEntryDao.save(changeEntry);
+            dao.save(changeEntry);
 
           } 
           else {
@@ -179,16 +177,7 @@ public class Mongobee implements InitializingBean {
     }
   }
 
-  public DB connectMongoDb() throws UnknownHostException {
-    MongoClient mongoClient = new MongoClient(mongoClientURI);
-    String database = (isBlank(dbName)) ? mongoClientURI.getDatabase() : dbName;
 
-    if (isBlank(database)){
-      throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
-    } else {
-      return mongoClient.getDB(database);
-    }
-  }
 
   /**
    * Used DB name should be set here or via MongoDB URI (in a constructor)

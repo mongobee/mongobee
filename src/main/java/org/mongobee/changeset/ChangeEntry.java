@@ -27,8 +27,7 @@ public class ChangeEntry {
     this.changelogClass = changelogClass;
     this.changesetMethodName = changesetMethodName;
   }
-  
-  
+
   public DBObject buildFullDBObject(){
     BasicDBObject entry = new BasicDBObject();
     
@@ -41,12 +40,11 @@ public class ChangeEntry {
     return entry;
   }
   
-  public DBObject buildLocatingDBObject(){
+  public DBObject buildSearchQueryDBObject(){
     return new BasicDBObject()
                   .append("changeId", changeId)
                   .append("author", author);
   }
-
 
   @Override
   public String toString() {
