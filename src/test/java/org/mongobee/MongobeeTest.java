@@ -1,27 +1,34 @@
 package org.mongobee;
 
+import com.mongodb.MongoClientURI;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mongobee.exception.MongobeeConfigurationException;
 import org.mongobee.test.changelogs.MongobeeTestResource;
 
-@Ignore // TODO take Fongo to mock db
 public class MongobeeTest {
   
   private Mongobee runner;
   
-  @Before
-  public void initRunner(){
+  @Test(expected = MongobeeConfigurationException.class)
+  public void shouldNThrowAnExceptionIfNoDbNameSet() throws Exception{
+    MongoClientURI uri = new MongoClientURI("mongodb://localhost:27017/");
     runner = new Mongobee();
-    
-    runner.setDbName("mongobeetest");
-    runner.setHost("localhost");
     runner.setEnabled(true);
-    runner.setChangelogsBasePackage(MongobeeTestResource.class.getPackage().getName());
+    runner.setChangelogsScanPackage(MongobeeTestResource.class.getPackage().getName());
+    runner.execute();
   }
-  
-  @Test
-  public void executeSample() throws Exception {
+
+  @Ignore @Test // TODO take Fongo to mock db
+  public void shouldExecuteSample() throws Exception {
+    // given
+    runner = new Mongobee();
+    runner.setDbName("mongobeetest");
+    runner.setEnabled(true);
+    runner.setChangelogsScanPackage(MongobeeTestResource.class.getPackage().getName());
+
+    // when
     runner.execute();
   }
 
