@@ -1,7 +1,5 @@
-![mongobee](https://raw.githubusercontent.com/aaranost/mongobee/master/misc/mongobee_min.png)
+![mongobee](https://raw.githubusercontent.com/mongobee/mongobee/master/misc/mongobee_min.png)
 =======
-
-# Project moved to: [github.com/mongobee/mongobee](https://github.com/mongobee/mongobee)
 
 ### What for?
 
@@ -23,5 +21,5 @@ mongobee is still in beta phase! There are still some things to implement but it
 
 Check out [wiki page](https://github.com/aaranost/mongobee/wiki/How-to-use-mongobee)
 
-[![Build Status](https://travis-ci.org/aaranost/mongobee.svg?branch=master)](https://travis-ci.org/aaranost/mongobee)
+[![Build Status](https://travis-ci.org/mongobee/mongobee.svg?branch=master)](https://travis-ci.org/mongobee/mongobee)
 

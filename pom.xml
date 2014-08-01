@@ -6,14 +6,14 @@
     <name>mongobee</name>
     <description>MongoDB data migration tool for Java</description>
     
-    <groupId>org.mongobee</groupId>
+    <groupId>vom.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
     <version>0.4-SNAPSHOT</version>
 
     <scm>
-        <connection>scm:git:git@github.com:aaranost/mongobee.git</connection>
-        <developerConnection>scm:git:git@github.com:aaranost/mongobee.git</developerConnection>
-        <url>git@github.com:aaranost/mongobee.git</url>
+        <connection>scm:git:git@github.com:mongobee/mongobee.git</connection>
+        <developerConnection>scm:git:git@github.com:mongobee/mongobee.git</developerConnection>
+        <url>git@github.com:mongobee/mongobee.git</url>
     </scm>
 
     <properties>
