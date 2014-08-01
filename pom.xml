@@ -6,7 +6,7 @@
     <name>mongobee</name>
     <description>MongoDB data migration tool for Java</description>
     
-    <groupId>vom.github.mongobee</groupId>
+    <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
     <version>0.4-SNAPSHOT</version>
 
