@@ -1,14 +1,14 @@
-package org.mongobee.dao;
+package com.github.mongobee.dao;
 
 import com.mongodb.*;
-import org.mongobee.changeset.ChangeEntry;
-import org.mongobee.exception.MongobeeConfigurationException;
-import org.mongobee.exception.MongobeeConnectionException;
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.exception.MongobeeConnectionException;
 
 import java.net.UnknownHostException;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
+import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 
 /**
  * @author lstolowski

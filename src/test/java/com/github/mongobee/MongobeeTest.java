@@ -1,21 +1,18 @@
-package org.mongobee;
+package com.github.mongobee;
 
 import com.github.fakemongo.Fongo;
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.dao.ChangeEntryDao;
+import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.test.changelogs.MongobeeTestResource;
 import com.mongodb.DB;
-import com.mongodb.FongoDB;
 import com.mongodb.MongoClientURI;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mongobee.changeset.ChangeEntry;
-import org.mongobee.dao.ChangeEntryDao;
-import org.mongobee.exception.MongobeeConfigurationException;
-import org.mongobee.test.changelogs.MongobeeTestResource;
 
 import java.net.UnknownHostException;
 

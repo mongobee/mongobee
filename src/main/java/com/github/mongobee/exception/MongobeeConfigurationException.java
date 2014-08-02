@@ -1,4 +1,4 @@
-package org.mongobee.exception;
+package com.github.mongobee.exception;
 
 /**
  * @author lstolowski

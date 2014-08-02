@@ -1,9 +1,9 @@
-package org.mongobee.utils;
+package com.github.mongobee.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.mongobee.changeset.ChangeEntry;
-import org.mongobee.changeset.Changelog;
-import org.mongobee.changeset.Changeset;
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.changeset.Changelog;
+import com.github.mongobee.changeset.Changeset;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Method;

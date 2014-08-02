@@ -1,4 +1,4 @@
-package org.mongobee.changeset;
+package com.github.mongobee.changeset;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;

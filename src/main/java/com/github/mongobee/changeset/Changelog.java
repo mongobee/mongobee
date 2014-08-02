@@ -1,4 +1,4 @@
-package org.mongobee.changeset;
+package com.github.mongobee.changeset;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Class containing particular changesets (@{@link org.mongobee.changeset.Changeset})
+ * Class containing particular changesets (@{@link com.github.mongobee.changeset.Changeset})
  * @author lstolowski
  * @since 27/07/2014
- * @see org.mongobee.changeset.Changeset
+ * @see com.github.mongobee.changeset.Changeset
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

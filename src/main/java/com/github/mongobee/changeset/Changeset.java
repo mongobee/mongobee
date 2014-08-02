@@ -1,4 +1,4 @@
-package org.mongobee.changeset;
+package com.github.mongobee.changeset;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Set of changes to be added to the DB. Many changesets are included in one changelog.
  * @author lstolowski
  * @since 27/07/2014
- * @see org.mongobee.changeset.Changelog
+ * @see com.github.mongobee.changeset.Changelog
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

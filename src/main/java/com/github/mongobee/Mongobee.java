@@ -1,11 +1,12 @@
-package org.mongobee;
+package com.github.mongobee;
 
-import com.mongodb.*;
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.dao.ChangeEntryDao;
+import com.github.mongobee.exception.MongobeeChangesetException;
+import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.mongodb.DB;
+import com.mongodb.MongoClientURI;
 import org.jongo.Jongo;
-import org.mongobee.changeset.ChangeEntry;
-import org.mongobee.dao.ChangeEntryDao;
-import org.mongobee.exception.MongobeeChangesetException;
-import org.mongobee.exception.MongobeeConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -15,10 +16,10 @@ import java.lang.reflect.Method;
 import java.net.UnknownHostException;
 import java.util.List;
 
+import static com.github.mongobee.utils.MongobeeAnnotationUtils.*;
 import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.mongobee.utils.MongobeeAnnotationUtils.*;
 
 /**
  * Mongobee runner

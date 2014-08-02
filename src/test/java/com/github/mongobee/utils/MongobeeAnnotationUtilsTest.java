@@ -1,15 +1,15 @@
-package org.mongobee.utils;
+package com.github.mongobee.utils;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import org.mongobee.changeset.ChangeEntry;
-import org.mongobee.test.changelogs.MongobeeTestResource;
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.test.changelogs.MongobeeTestResource;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangelogsAt;
-import static org.mongobee.utils.MongobeeAnnotationUtils.fetchChangesetsAt;
+import static com.github.mongobee.utils.MongobeeAnnotationUtils.fetchChangelogsAt;
+import static com.github.mongobee.utils.MongobeeAnnotationUtils.fetchChangesetsAt;
 
 /**
  * @author lstolowski

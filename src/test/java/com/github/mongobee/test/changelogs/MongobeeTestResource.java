@@ -1,9 +1,9 @@
-package org.mongobee.test.changelogs;
+package com.github.mongobee.test.changelogs;
 
 import com.mongodb.DB;
 import org.jongo.Jongo;
-import org.mongobee.changeset.Changelog;
-import org.mongobee.changeset.Changeset;
+import com.github.mongobee.changeset.Changelog;
+import com.github.mongobee.changeset.Changeset;
 
 /**
  * @author lstolowski
