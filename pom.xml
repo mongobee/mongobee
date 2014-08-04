@@ -5,11 +5,11 @@
 
     <name>mongobee</name>
     <description>MongoDB data migration tool for Java</description>
-    
+    <url>http://github.com/secondmarket/mongeez</url>
+
     <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
-    <version>0.4</version>
-    <url>http://github.com/secondmarket/mongeez</url>
+    <version>0.5-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -18,11 +18,30 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
     <scm>
         <connection>scm:git:git@github.com:mongobee/mongobee.git</connection>
         <developerConnection>scm:git:git@github.com:mongobee/mongobee.git</developerConnection>
         <url>git@github.com:mongobee/mongobee.git</url>
-  </scm>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>aaranost</id>
+            <name>lstolowski</name>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <spring.version>4.0.6.RELEASE</spring.version>
@@ -81,24 +100,6 @@
         </dependency>
     </dependencies>
 
-    <developers>
-        <developer>
-            <id>aaranost</id>
-            <name>lstolowski</name>
-        </developer>
-    </developers>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-    
     <build>
         <plugins>
             <plugin>
@@ -157,22 +158,20 @@
                     </execution>
                 </executions>
             </plugin>
-<plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-gpg-plugin</artifactId>
-      <version>1.5</version>
-      <executions>
-        <execution>
-          <id>sign-artifacts</id>
-          <phase>verify</phase>
-          <goals>
-            <goal>sign</goal>
-          </goals>
-        </execution>
-      </executions>
-    </plugin>
-
-
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-gpg-plugin</artifactId>
+              <version>1.5</version>
+              <executions>
+                <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                    <goal>sign</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
