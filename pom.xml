@@ -8,13 +8,14 @@
     
     <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
 
     <scm>
         <connection>scm:git:git@github.com:mongobee/mongobee.git</connection>
         <developerConnection>scm:git:git@github.com:mongobee/mongobee.git</developerConnection>
         <url>git@github.com:mongobee/mongobee.git</url>
-    </scm>
+      <tag>mongobee-0.4</tag>
+  </scm>
 
     <properties>
         <spring.version>4.0.6.RELEASE</spring.version>
