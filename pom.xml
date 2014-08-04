@@ -8,13 +8,13 @@
     
     <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.5</version>
 
     <scm>
         <connection>scm:git:git@github.com:mongobee/mongobee.git</connection>
         <developerConnection>scm:git:git@github.com:mongobee/mongobee.git</developerConnection>
         <url>git@github.com:mongobee/mongobee.git</url>
-      <tag>HEAD</tag>
+      <tag>mongobee-0.5</tag>
   </scm>
 
     <properties>
