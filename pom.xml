@@ -8,13 +8,13 @@
     
     <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.4</version>
 
     <scm>
         <connection>scm:git:git@github.com:mongobee/mongobee.git</connection>
         <developerConnection>scm:git:git@github.com:mongobee/mongobee.git</developerConnection>
         <url>git@github.com:mongobee/mongobee.git</url>
-      <tag>HEAD</tag>
+      <tag>mongobee-0.4</tag>
   </scm>
 
     <properties>
@@ -150,6 +150,22 @@
                     </execution>
                 </executions>
             </plugin>
+<plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-gpg-plugin</artifactId>
+      <version>1.5</version>
+      <executions>
+        <execution>
+          <id>sign-artifacts</id>
+          <phase>verify</phase>
+          <goals>
+            <goal>sign</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+
+
         </plugins>
     </build>
 </project>
