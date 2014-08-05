@@ -33,11 +33,11 @@ public @interface Changeset {
    */
   public String order();   // must be set
 
-//  /**
-//   * Executes the change set on every mongobee's execution, even if it has been run before. <br/>
-//   * Optional (default is false)
-//   */
-//  public boolean runAlways() default false;
+  /**
+   * Executes the change set on every mongobee's execution, even if it has been run before. <br/>
+   * Optional (default is false)
+   */
+  public boolean runAlways() default false;
 //
 //  /**
 //   * Executes the change the first time it is seen and each time the change set has been changed. <br/>

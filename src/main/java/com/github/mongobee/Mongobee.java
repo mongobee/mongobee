@@ -118,53 +118,63 @@ public class Mongobee implements InitializingBean {
 
     logger.info("Mongobee has started the data migration sequence..");
     
-    DB db = dao.connectMongoDb(mongoClientURI, dbName);
+    dao.connectMongoDb(mongoClientURI, dbName);
 
     for (Class<?> changelogClass : fetchChangelogsAt(changelogsScanPackage)) {
       
-      Object changesetInstance = changelogClass.getConstructor().newInstance();
+      Object changelogInstance = changelogClass.getConstructor().newInstance();
 
-      List<Method> changesetMethods = fetchChangesetsAt(changesetInstance.getClass());
+      List<Method> changesetMethods = fetchChangesetsAt(changelogInstance.getClass());
 
       for (Method changesetMethod : changesetMethods) {
 
         ChangeEntry changeEntry = createChangeEntryFor(changesetMethod);
-        if (dao.isNewChange(changeEntry)) {
 
-          if (changesetMethod.getParameterTypes().length == 1 
-                      && changesetMethod.getParameterTypes()[0].equals(DB.class)) {
-            logger.debug("method with DB argument");
-
-            changesetMethod.invoke(changesetInstance, db);
+        try {
+          if (dao.isNewChange(changeEntry)) {
+            executeChangesetMethod(changesetMethod, changelogInstance, dao.getDb());
             dao.save(changeEntry);
-
+            logger.info(changeEntry + " applied");
           }
-          else if (changesetMethod.getParameterTypes().length == 1 
-                      && changesetMethod.getParameterTypes()[0].equals(Jongo.class)) {
-            logger.debug("method with Jongo argument");
-
-            changesetMethod.invoke(changesetInstance, new Jongo(db));
-            dao.save(changeEntry);
-
+          else if (isRunAlwaysChangeset(changesetMethod)){
+            executeChangesetMethod(changesetMethod, changelogInstance, dao.getDb());
+            logger.info(changeEntry + " reapplied");
           }
-          else if (changesetMethod.getParameterTypes().length == 0) {
-            logger.debug("method with no params");
-            
-            changesetMethod.invoke(changesetInstance);
-            dao.save(changeEntry);
-
-          } 
           else {
-            throw new MongobeeChangesetException("Changeset method has wrong arguments list: " + changeEntry);
+            logger.info(changeEntry + " passed over");
           }
-          logger.info(changeEntry + " applied");
-        } else {
-          logger.info(changeEntry + " passed over");
+        } catch (MongobeeChangesetException e) {
+          logger.error(e.getMessage());
         }
       }
 
     }
     logger.info("Mongobee has finished his job.");
+  }
+
+  private Object executeChangesetMethod(Method changesetMethod, Object changelogInstance, DB db)
+                          throws IllegalAccessException, InvocationTargetException, MongobeeChangesetException {
+    if (changesetMethod.getParameterTypes().length == 1
+                && changesetMethod.getParameterTypes()[0].equals(DB.class)) {
+      logger.debug("method with DB argument");
+
+      return changesetMethod.invoke(changelogInstance, db);
+    }
+    else if (changesetMethod.getParameterTypes().length == 1
+                && changesetMethod.getParameterTypes()[0].equals(Jongo.class)) {
+      logger.debug("method with Jongo argument");
+
+      return changesetMethod.invoke(changelogInstance, new Jongo(db));
+    }
+    else if (changesetMethod.getParameterTypes().length == 0) {
+      logger.debug("method with no params");
+
+      return changesetMethod.invoke(changelogInstance);
+    }
+    else {
+      throw new MongobeeChangesetException("Changeset method " + changesetMethod.getName() +
+                                            " has wrong arguments list. Please see docs for more info!");
+    }
   }
 
   private void validateConfig() {

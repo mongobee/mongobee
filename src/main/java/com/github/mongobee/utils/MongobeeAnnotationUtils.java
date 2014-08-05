@@ -9,6 +9,8 @@ import org.reflections.Reflections;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 /**
  * Utilities to deal with reflections and annotations
  * @author lstolowski
@@ -28,8 +30,8 @@ public class MongobeeAnnotationUtils {
         Changelog c1 = o1.getAnnotation(Changelog.class);
         Changelog c2 = o2.getAnnotation(Changelog.class);
 
-        String val1 = StringUtils.isEmpty(c1.order()) ? o1.getCanonicalName() : c1.order();
-        String val2 = StringUtils.isEmpty(c2.order()) ? o2.getCanonicalName() : c2.order();
+        String val1 = isBlank(c1.order()) ? o1.getCanonicalName() : c1.order();
+        String val2 = isBlank(c2.order()) ? o2.getCanonicalName() : c2.order();
 
         return val1.compareTo(val2);
       }
@@ -59,7 +61,15 @@ public class MongobeeAnnotationUtils {
     return methods;
   }
   
-  
+  public static boolean isRunAlwaysChangeset(Method changesetMethod){
+    if (changesetMethod.isAnnotationPresent(Changeset.class)){
+      Changeset annotation = changesetMethod.getAnnotation(Changeset.class);
+      return annotation.runAlways();
+    } else {
+      return false;
+    }
+  }
+
   public static ChangeEntry createChangeEntryFor(Method changesetMethod){
     if (changesetMethod.isAnnotationPresent(Changeset.class)){
       Changeset annotation = changesetMethod.getAnnotation(Changeset.class);

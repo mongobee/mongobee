@@ -33,7 +33,7 @@ public class ChangeEntryDao {
   public boolean isNewChange(ChangeEntry changeEntry) {
     verifyDbConnection();
 
-    DBCollection mongobeeChangelog = db.getCollection(CHANGELOG_COLLECTION);
+    DBCollection mongobeeChangelog = getDb().getCollection(CHANGELOG_COLLECTION);
     DBObject entry = mongobeeChangelog.findOne(changeEntry.buildSearchQueryDBObject());
 
     return entry == null ? true : false;
@@ -42,15 +42,18 @@ public class ChangeEntryDao {
   public WriteResult save(ChangeEntry changeEntry) {
     verifyDbConnection();
 
-    DBCollection monjeezlog = db.getCollection(CHANGELOG_COLLECTION);
-    return monjeezlog.save(changeEntry.buildFullDBObject());
+    DBCollection mongobeelog = getDb().getCollection(CHANGELOG_COLLECTION);
+    return mongobeelog.save(changeEntry.buildFullDBObject());
   }
 
   private void verifyDbConnection(){
-    if (db == null) {
+    if (getDb() == null) {
       throw new MongobeeConnectionException("Database is not connected. Mongobee thrown unexpected error",
         new NullPointerException());
     }
   }
 
+  public DB getDb() {
+    return db;
+  }
 }
