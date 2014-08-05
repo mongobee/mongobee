@@ -1,1 +1,17 @@
 language: java
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "gQCQ8nt05gkEayT7P+30urss8OH+3hn9kmdT9WEeaIKzW+I4HFFjuLX0ir4L1WyDqmd4eYUoivK3S5oLl0dBSQlOiJxMQQWb52sDEJhGByFhoCx1GN5FzWqaOWm088lljVDZ9ROM0fQEhuiC+WVI7n3azJA/Jb1ZwuzEgCMAX28="
+
+addons:
+  coverity_scan:
+    project:
+      name: "mongobee/mongobee"
+      description: "Build submitted via Travis CI"
+    notification_email: stolowski@wp.pl
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn -DskipTests=true compile"
+    branch_pattern: coverity_scan
