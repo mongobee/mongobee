@@ -5,7 +5,7 @@
 
     <name>mongobee</name>
     <description>MongoDB data migration tool for Java</description>
-    <url>http://github.com/secondmarket/mongeez</url>
+    <url>https://github.com/mongobee/mongobee</url>
 
     <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
