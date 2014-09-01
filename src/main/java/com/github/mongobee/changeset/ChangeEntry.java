@@ -6,7 +6,7 @@ import com.mongodb.DBObject;
 import java.util.Date;
 
 /**
- * Entry in the changes collection log {@link ChangeEntry#CHANGELOG_COLLECTION} <br/>
+ * Entry in the changes collection log {@link ChangeEntry#CHANGELOG_COLLECTION}
  * Type: entity class.
  * @author lstolowski
  * @since 27/07/2014

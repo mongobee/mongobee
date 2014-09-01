@@ -50,7 +50,7 @@ public class Mongobee implements InitializingBean {
    * <p>Constructor takes db.mongodb.MongoClientURI object as a parameter.
    * </p><p>For more details about MongoClientURI please see com.mongodb.MongoClientURI
    * </p>
-   * @param mongoClientURI
+   * @param mongoClientURI uri to your db
    * @see MongoClientURI
    */
   public Mongobee(MongoClientURI mongoClientURI) {
@@ -79,8 +79,8 @@ public class Mongobee implements InitializingBean {
    *
    * <li>{@code ?options} are connection options. For list of options please see com.mongodb.MongoClientURI</li>
    * </ul>
-   * </p>
-   * <p>For details, please see com.mongodb.MongoClientURI</p>
+   *
+   * <p>For details, please see com.mongodb.MongoClientURI
    * @param mongoURI with correct format
    * @see com.mongodb.MongoClientURI
    */
@@ -91,7 +91,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * For Spring users: executing mongobee after bean is created in the Spring context
-   * @throws Exception
+   * @throws Exception exception
    */
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -101,11 +101,11 @@ public class Mongobee implements InitializingBean {
   /**
    * Executing migration
    * 
-   * @throws UnknownHostException
-   * @throws NoSuchMethodException
-   * @throws IllegalAccessException
-   * @throws InvocationTargetException
-   * @throws InstantiationException
+   * @throws UnknownHostException exception
+   * @throws NoSuchMethodException exception
+   * @throws IllegalAccessException exception
+   * @throws InvocationTargetException exception
+   * @throws InstantiationException exception
    */
   public void execute() throws UnknownHostException, NoSuchMethodException, IllegalAccessException, 
                         InvocationTargetException, InstantiationException {
@@ -192,7 +192,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Used DB name should be set here or via MongoDB URI (in a constructor)
-   * @param dbName
+   * @param dbName database name
    */
   public void setDbName(String dbName) {
     this.dbName = dbName;
@@ -204,7 +204,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Package name where @Changelog-annotated classes are kept.
-   * @param changelogsScanPackage
+   * @param changelogsScanPackage package where your changelogs are
    */
   public void setChangelogsScanPackage(String changelogsScanPackage) {
     this.changelogsScanPackage = changelogsScanPackage;

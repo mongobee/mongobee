@@ -111,14 +111,6 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-release-plugin</artifactId>
@@ -180,6 +172,14 @@
                         </execution>
                       </executions>
                     </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
                 </plugins>
             </build>
         </profile>

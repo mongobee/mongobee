@@ -16,26 +16,30 @@ import java.lang.annotation.Target;
 public @interface Changeset {
 
   /**
-   * Author of the changeset. <br/>
+   * Author of the changeset.
    * Obligatory
+   * @return author
    */
   public String author();  // must be set
 
   /**
-   * Unique ID of the changeset. <br/>
+   * Unique ID of the changeset.
    * Obligatory
+   * @return unique id
    */
   public String id();      // must be set
 
   /**
-   * Sequence that provide correct order for changesets. Sorted alphabetically, ascending. <br/>
+   * Sequence that provide correct order for changesets. Sorted alphabetically, ascending.
    * Obligatory.
+   * @return ordering
    */
   public String order();   // must be set
 
   /**
-   * Executes the change set on every mongobee's execution, even if it has been run before. <br/>
+   * Executes the change set on every mongobee's execution, even if it has been run before.
    * Optional (default is false)
+   * @return should run always?
    */
   public boolean runAlways() default false;
 //
