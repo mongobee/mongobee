@@ -2,6 +2,7 @@ package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.Changeset;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 
@@ -11,7 +12,7 @@ import java.util.Comparator;
  * @author lstolowski
  * @since 2014-09-17
  */
-public class ChangesetComparator implements Comparator<Method> {
+public class ChangesetComparator implements Comparator<Method>, Serializable {
   @Override
   public int compare(Method o1, Method o2) {
     Changeset c1 = o1.getAnnotation(Changeset.class);

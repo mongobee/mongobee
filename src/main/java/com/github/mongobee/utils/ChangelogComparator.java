@@ -2,6 +2,7 @@ package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.Changelog;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -12,7 +13,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * @author lstolowski
  * @since 2014-09-17
  */
-public class ChangelogComparator implements Comparator<Class<?>> {
+public class ChangelogComparator implements Comparator<Class<?>>, Serializable {
   @Override
   public int compare(Class<?> o1, Class<?> o2) {
     Changelog c1 = o1.getAnnotation(Changelog.class);

@@ -17,7 +17,7 @@ public class EnvironmentMock implements Environment {
 
   @Override
   public String[] getActiveProfiles() {
-    return activeProfiles;
+    return this.activeProfiles;
   }
 
   @Override
