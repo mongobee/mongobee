@@ -21,6 +21,14 @@ public class ChangelogComparator implements Comparator<Class<?>> {
     String val1 = isBlank(c1.order()) ? o1.getCanonicalName() : c1.order();
     String val2 = isBlank(c2.order()) ? o2.getCanonicalName() : c2.order();
 
+    if (val1 == null && val2 == null){
+      return 0;
+    } else if (val1 == null) {
+      return -1;
+    } else if (val2 == null) {
+      return 1;
+    }
+
     return val1.compareTo(val2);
   }
 }
