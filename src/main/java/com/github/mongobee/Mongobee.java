@@ -4,19 +4,20 @@ import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangesetException;
 import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.utils.ChangeService;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
 import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.UnknownHostException;
 import java.util.List;
 
-import static com.github.mongobee.utils.MongobeeAnnotationUtils.*;
 import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -36,6 +37,7 @@ public class Mongobee implements InitializingBean {
   private String changelogsScanPackage;
   private MongoClientURI mongoClientURI;
   private String dbName;
+  private Environment springEnvironment;
 
   /**
    * <p>Simple constructor with default configuration of host (localhost) and port (27017). Although
@@ -120,15 +122,16 @@ public class Mongobee implements InitializingBean {
     
     dao.connectMongoDb(mongoClientURI, dbName);
 
-    for (Class<?> changelogClass : fetchChangelogsAt(changelogsScanPackage)) {
+    ChangeService service = new ChangeService(changelogsScanPackage, springEnvironment);
+
+    for (Class<?> changelogClass : service.fetchChangelogs()) {
       
       Object changelogInstance = changelogClass.getConstructor().newInstance();
 
-      List<Method> changesetMethods = fetchChangesetsAt(changelogInstance.getClass());
+      List<Method> changesetMethods = service.fetchChangesets(changelogInstance.getClass());
 
       for (Method changesetMethod : changesetMethods) {
-
-        ChangeEntry changeEntry = createChangeEntryFor(changesetMethod);
+        ChangeEntry changeEntry = service.createChangeEntry(changesetMethod);
 
         try {
           if (dao.isNewChange(changeEntry)) {
@@ -136,7 +139,7 @@ public class Mongobee implements InitializingBean {
             dao.save(changeEntry);
             logger.info(changeEntry + " applied");
           }
-          else if (isRunAlwaysChangeset(changesetMethod)){
+          else if (service.isRunAlwaysChangeset(changesetMethod)){
             executeChangesetMethod(changesetMethod, changelogInstance, dao.getDb());
             logger.info(changeEntry + " reapplied");
           }
@@ -188,8 +191,6 @@ public class Mongobee implements InitializingBean {
     }
   }
 
-
-
   /**
    * Used DB name should be set here or via MongoDB URI (in a constructor)
    * @param dbName database name
@@ -220,4 +221,11 @@ public class Mongobee implements InitializingBean {
     this.enabled = enabled;
   }
 
+  /**
+   * Set Environment for Spring Profiles integration
+   * @param environment
+   */
+  public void setSpringEnvironment(Environment environment) {
+    this.springEnvironment = environment;
+  }
 }
