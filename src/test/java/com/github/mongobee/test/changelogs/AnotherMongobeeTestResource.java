@@ -7,11 +7,8 @@ import com.github.mongobee.changeset.Changeset;
 import org.jongo.MongoCollection;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Lukasz
- * Date: 30.07.14
- * Time: 21:06
- * To change this template use File | Settings | File Templates.
+ * @author lstolowski
+ * @since 30.07.14
  */
 @Changelog(order = "2")
 public class AnotherMongobeeTestResource {
