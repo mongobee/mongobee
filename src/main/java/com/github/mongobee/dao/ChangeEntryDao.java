@@ -1,14 +1,15 @@
 package com.github.mongobee.dao;
 
-import com.mongodb.*;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
+import com.mongodb.*;
+import org.springframework.util.*;
 
 import java.net.UnknownHostException;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author lstolowski
@@ -20,9 +21,9 @@ public class ChangeEntryDao {
   
   public DB connectMongoDb(MongoClientURI mongoClientURI, String dbName) throws UnknownHostException {
     MongoClient mongoClient = new MongoClient(mongoClientURI);
-    String database = (isBlank(dbName)) ? mongoClientURI.getDatabase() : dbName;
+    String database = (hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
 
-    if (isBlank(database)){
+    if (hasText(database)){
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     } else {
       db = mongoClient.getDB(database);

@@ -20,7 +20,7 @@ import java.util.List;
 
 import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Mongobee runner
@@ -181,11 +181,11 @@ public class Mongobee implements InitializingBean {
   }
 
   private void validateConfig() {
-    if (isBlank(dbName)) {
+    if (hasText(dbName)) {
       throw new MongobeeConfigurationException(
         "DB name is not set. It should be defined in MongoDB URI or via setter");
     }
-    if (isBlank(changelogsScanPackage)) {
+    if (hasText(changelogsScanPackage)) {
       throw new MongobeeConfigurationException(
         "Scan package for changelogs is not set: use appropriate setter");
     }

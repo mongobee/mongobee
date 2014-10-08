@@ -9,7 +9,7 @@
 
     <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.7.1-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -63,11 +63,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
