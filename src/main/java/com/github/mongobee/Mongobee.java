@@ -194,21 +194,31 @@ public class Mongobee implements InitializingBean {
   /**
    * Used DB name should be set here or via MongoDB URI (in a constructor)
    * @param dbName database name
+   * @return Mongobee object for fluent interface
    */
-  public void setDbName(String dbName) {
+  public Mongobee setDbName(String dbName) {
     this.dbName = dbName;
+    return this;
   }
 
-  public void setMongoClientURI(MongoClientURI mongoClientURI) {
+  /**
+   * Sets uri to MongoDB
+   * @param mongoClientURI
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setMongoClientURI(MongoClientURI mongoClientURI) {
     this.mongoClientURI = mongoClientURI;
+    return this;
   }
 
   /**
    * Package name where @ChangeLog-annotated classes are kept.
    * @param changeLogsScanPackage package where your changelogs are
+   * @return Mongobee object for fluent interface
    */
-  public void setChangeLogsScanPackage(String changeLogsScanPackage) {
+  public Mongobee setChangeLogsScanPackage(String changeLogsScanPackage) {
     this.changeLogsScanPackage = changeLogsScanPackage;
+    return this;
   }
 
   /**
@@ -217,15 +227,24 @@ public class Mongobee implements InitializingBean {
   public boolean isEnabled() {
     return enabled;
   }
-  public void setEnabled(boolean enabled) {
+
+  /**
+   * Feature which enables/disables Mongobee runner execution
+   * @param enabled
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setEnabled(boolean enabled) {
     this.enabled = enabled;
+    return this;
   }
 
   /**
    * Set Environment for Spring Profiles integration
    * @param environment
+   * @return Mongobee object for fluent interface
    */
-  public void setSpringEnvironment(Environment environment) {
+  public Mongobee setSpringEnvironment(Environment environment) {
     this.springEnvironment = environment;
+    return this;
   }
 }
