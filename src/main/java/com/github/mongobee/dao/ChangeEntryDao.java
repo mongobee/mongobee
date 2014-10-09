@@ -21,9 +21,9 @@ public class ChangeEntryDao {
   
   public DB connectMongoDb(MongoClientURI mongoClientURI, String dbName) throws UnknownHostException {
     MongoClient mongoClient = new MongoClient(mongoClientURI);
-    String database = (hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
+    String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
 
-    if (hasText(database)){
+    if (!hasText(database)){
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     } else {
       db = mongoClient.getDB(database);
@@ -34,8 +34,8 @@ public class ChangeEntryDao {
   public boolean isNewChange(ChangeEntry changeEntry) {
     verifyDbConnection();
 
-    DBCollection mongobeeChangelog = getDb().getCollection(CHANGELOG_COLLECTION);
-    DBObject entry = mongobeeChangelog.findOne(changeEntry.buildSearchQueryDBObject());
+    DBCollection mongobeeChangeLog = getDb().getCollection(CHANGELOG_COLLECTION);
+    DBObject entry = mongobeeChangeLog.findOne(changeEntry.buildSearchQueryDBObject());
 
     return entry == null ? true : false;
   }
@@ -43,8 +43,8 @@ public class ChangeEntryDao {
   public WriteResult save(ChangeEntry changeEntry) {
     verifyDbConnection();
 
-    DBCollection mongobeelog = getDb().getCollection(CHANGELOG_COLLECTION);
-    return mongobeelog.save(changeEntry.buildFullDBObject());
+    DBCollection mongobeeLog = getDb().getCollection(CHANGELOG_COLLECTION);
+    return mongobeeLog.save(changeEntry.buildFullDBObject());
   }
 
   private void verifyDbConnection(){

@@ -7,16 +7,13 @@ import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.test.changelogs.MongobeeTestResource;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
-import com.mongodb.DBCursor;
 import com.mongodb.MongoClientURI;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.w3c.dom.*;
 
 import java.net.UnknownHostException;
 
@@ -47,7 +44,7 @@ public class MongobeeTest {
 
     runner.setDbName("mongobeetest");
     runner.setEnabled(true);
-    runner.setChangelogsScanPackage(MongobeeTestResource.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(MongobeeTestResource.class.getPackage().getName());
   }
 
 
@@ -55,12 +52,12 @@ public class MongobeeTest {
   public void shouldThrowAnExceptionIfNoDbNameSet() throws Exception{
     Mongobee runner = new Mongobee(new MongoClientURI("mongodb://localhost:27017/"));
     runner.setEnabled(true);
-    runner.setChangelogsScanPackage(MongobeeTestResource.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(MongobeeTestResource.class.getPackage().getName());
     runner.execute();
   }
 
   @Test
-  public void shouldExecute9Changesets() throws Exception {
+  public void shouldExecute9ChangeSets() throws Exception {
     // given
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
@@ -93,7 +90,7 @@ public class MongobeeTest {
   }
 
   @Test
-  public void shouldPassOverChangesets() throws Exception {
+  public void shouldPassOverChangeSets() throws Exception {
     // given
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(false);
 

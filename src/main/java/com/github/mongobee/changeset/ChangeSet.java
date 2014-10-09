@@ -9,11 +9,11 @@ import java.lang.annotation.Target;
  * Set of changes to be added to the DB. Many changesets are included in one changelog.
  * @author lstolowski
  * @since 27/07/2014
- * @see com.github.mongobee.changeset.Changelog
+ * @see ChangeLog
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Changeset {
+public @interface ChangeSet {
 
   /**
    * Author of the changeset.

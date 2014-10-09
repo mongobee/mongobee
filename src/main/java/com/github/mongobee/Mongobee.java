@@ -2,7 +2,7 @@ package com.github.mongobee;
 
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
-import com.github.mongobee.exception.MongobeeChangesetException;
+import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.utils.ChangeService;
 import com.mongodb.DB;
@@ -34,7 +34,7 @@ public class Mongobee implements InitializingBean {
   private ChangeEntryDao dao;
 
   private boolean enabled = true;
-  private String changelogsScanPackage;
+  private String changeLogsScanPackage;
   private MongoClientURI mongoClientURI;
   private String dbName;
   private Environment springEnvironment;
@@ -122,31 +122,31 @@ public class Mongobee implements InitializingBean {
     
     dao.connectMongoDb(mongoClientURI, dbName);
 
-    ChangeService service = new ChangeService(changelogsScanPackage, springEnvironment);
+    ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
-    for (Class<?> changelogClass : service.fetchChangelogs()) {
+    for (Class<?> changelogClass : service.fetchChangeLogs()) {
       
       Object changelogInstance = changelogClass.getConstructor().newInstance();
 
-      List<Method> changesetMethods = service.fetchChangesets(changelogInstance.getClass());
+      List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
 
       for (Method changesetMethod : changesetMethods) {
         ChangeEntry changeEntry = service.createChangeEntry(changesetMethod);
 
         try {
           if (dao.isNewChange(changeEntry)) {
-            executeChangesetMethod(changesetMethod, changelogInstance, dao.getDb());
+            executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
             dao.save(changeEntry);
             logger.info(changeEntry + " applied");
           }
-          else if (service.isRunAlwaysChangeset(changesetMethod)){
-            executeChangesetMethod(changesetMethod, changelogInstance, dao.getDb());
+          else if (service.isRunAlwaysChangeSet(changesetMethod)){
+            executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
             logger.info(changeEntry + " reapplied");
           }
           else {
             logger.info(changeEntry + " passed over");
           }
-        } catch (MongobeeChangesetException e) {
+        } catch (MongobeeChangeSetException e) {
           logger.error(e.getMessage());
         }
       }
@@ -155,37 +155,37 @@ public class Mongobee implements InitializingBean {
     logger.info("Mongobee has finished his job.");
   }
 
-  private Object executeChangesetMethod(Method changesetMethod, Object changelogInstance, DB db)
-                          throws IllegalAccessException, InvocationTargetException, MongobeeChangesetException {
-    if (changesetMethod.getParameterTypes().length == 1
-                && changesetMethod.getParameterTypes()[0].equals(DB.class)) {
+  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db)
+                          throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
+    if (changeSetMethod.getParameterTypes().length == 1
+                && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
       logger.debug("method with DB argument");
 
-      return changesetMethod.invoke(changelogInstance, db);
+      return changeSetMethod.invoke(changeLogInstance, db);
     }
-    else if (changesetMethod.getParameterTypes().length == 1
-                && changesetMethod.getParameterTypes()[0].equals(Jongo.class)) {
+    else if (changeSetMethod.getParameterTypes().length == 1
+                && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
       logger.debug("method with Jongo argument");
 
-      return changesetMethod.invoke(changelogInstance, new Jongo(db));
+      return changeSetMethod.invoke(changeLogInstance, new Jongo(db));
     }
-    else if (changesetMethod.getParameterTypes().length == 0) {
+    else if (changeSetMethod.getParameterTypes().length == 0) {
       logger.debug("method with no params");
 
-      return changesetMethod.invoke(changelogInstance);
+      return changeSetMethod.invoke(changeLogInstance);
     }
     else {
-      throw new MongobeeChangesetException("Changeset method " + changesetMethod.getName() +
+      throw new MongobeeChangeSetException("ChangeSet method " + changeSetMethod.getName() +
                                             " has wrong arguments list. Please see docs for more info!");
     }
   }
 
   private void validateConfig() {
-    if (hasText(dbName)) {
+    if (!hasText(dbName)) {
       throw new MongobeeConfigurationException(
         "DB name is not set. It should be defined in MongoDB URI or via setter");
     }
-    if (hasText(changelogsScanPackage)) {
+    if (!hasText(changeLogsScanPackage)) {
       throw new MongobeeConfigurationException(
         "Scan package for changelogs is not set: use appropriate setter");
     }
@@ -204,11 +204,11 @@ public class Mongobee implements InitializingBean {
   }
 
   /**
-   * Package name where @Changelog-annotated classes are kept.
-   * @param changelogsScanPackage package where your changelogs are
+   * Package name where @ChangeLog-annotated classes are kept.
+   * @param changeLogsScanPackage package where your changelogs are
    */
-  public void setChangelogsScanPackage(String changelogsScanPackage) {
-    this.changelogsScanPackage = changelogsScanPackage;
+  public void setChangeLogsScanPackage(String changeLogsScanPackage) {
+    this.changeLogsScanPackage = changeLogsScanPackage;
   }
 
   /**

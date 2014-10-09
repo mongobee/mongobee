@@ -19,24 +19,24 @@ import static junit.framework.Assert.assertTrue;
 public class ChangeServiceTest {
 
   @Test
-  public void shouldFindChangelogClasses(){
+  public void shouldFindChangeLogClasses(){
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
     // when
-    List<Class<?>> foundClasses = service.fetchChangelogs();
+    List<Class<?>> foundClasses = service.fetchChangeLogs();
     // then
     assertTrue(foundClasses != null && foundClasses.size() > 0);
   }
   
   @Test
-  public void shouldFindChangesetMethods(){
+  public void shouldFindChangeSetMethods(){
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
 
     // when
-    List<Method> foundMethods = service.fetchChangesets(MongobeeTestResource.class);
+    List<Method> foundMethods = service.fetchChangeSets(MongobeeTestResource.class);
     
     // then
     assertTrue(foundMethods != null && foundMethods.size() == 4);
@@ -49,13 +49,13 @@ public class ChangeServiceTest {
     ChangeService service = new ChangeService(scanPackage);
 
     // when
-    List<Method> foundMethods = service.fetchChangesets(AnotherMongobeeTestResource.class);
+    List<Method> foundMethods = service.fetchChangeSets(AnotherMongobeeTestResource.class);
     // then
     for (Method foundMethod : foundMethods) {
-      if (foundMethod.getName().equals("testChangesetAlways")){
-        assertTrue(service.isRunAlwaysChangeset(foundMethod));
+      if (foundMethod.getName().equals("testChangeSetWithAlways")){
+        assertTrue(service.isRunAlwaysChangeSet(foundMethod));
       } else {
-        assertFalse(service.isRunAlwaysChangeset(foundMethod));
+        assertFalse(service.isRunAlwaysChangeSet(foundMethod));
       }
     }
     assertTrue(foundMethods != null && foundMethods.size() == 5);
@@ -67,7 +67,7 @@ public class ChangeServiceTest {
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
-    List<Method> foundMethods = service.fetchChangesets(MongobeeTestResource.class);
+    List<Method> foundMethods = service.fetchChangeSets(MongobeeTestResource.class);
 
     for (Method foundMethod : foundMethods) {
     
@@ -76,10 +76,10 @@ public class ChangeServiceTest {
       
       // then
       Assert.assertEquals("testuser", entry.getAuthor());
-      Assert.assertEquals(MongobeeTestResource.class.getName(), entry.getChangelogClass());
+      Assert.assertEquals(MongobeeTestResource.class.getName(), entry.getChangeLogClass());
       Assert.assertNotNull(entry.getTimestamp());
       Assert.assertNotNull(entry.getChangeId());
-      Assert.assertNotNull(entry.getChangesetMethodName());
+      Assert.assertNotNull(entry.getChangeSetMethodName());
     }
   }
 

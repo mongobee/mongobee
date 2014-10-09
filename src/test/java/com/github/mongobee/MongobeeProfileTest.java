@@ -5,8 +5,8 @@ import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.resources.EnvironmentMock;
 import com.github.mongobee.test.changelogs.AnotherMongobeeTestResource;
-import com.github.mongobee.test.profiles.def.UnProfiledChangelog;
-import com.github.mongobee.test.profiles.dev.ProfiledDevChangelog;
+import com.github.mongobee.test.profiles.def.UnProfiledChangeLog;
+import com.github.mongobee.test.profiles.dev.ProfiledDevChangeLog;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
@@ -57,7 +57,7 @@ public class MongobeeProfileTest {
   public void shouldRunDevProfileAndNonAnnotated() throws Exception {
     // given
     runner.setSpringEnvironment(new EnvironmentMock("dev", "test"));
-    runner.setChangelogsScanPackage(ProfiledDevChangelog.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(ProfiledDevChangeLog.class.getPackage().getName());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when
@@ -84,10 +84,10 @@ public class MongobeeProfileTest {
   }
 
   @Test
-  public void shouldRunUnprofiledChangelog() throws Exception {
+  public void shouldRunUnprofiledChangeLog() throws Exception {
     // given
     runner.setSpringEnvironment(new EnvironmentMock("test"));
-    runner.setChangelogsScanPackage(UnProfiledChangelog.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(UnProfiledChangeLog.class.getPackage().getName());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when
@@ -120,10 +120,10 @@ public class MongobeeProfileTest {
   }
 
   @Test
-  public void shouldNotRunAnyChangeset() throws Exception {
+  public void shouldNotRunAnyChangeSet() throws Exception {
     // given
     runner.setSpringEnvironment(new EnvironmentMock("foobar"));
-    runner.setChangelogsScanPackage(ProfiledDevChangelog.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(ProfiledDevChangeLog.class.getPackage().getName());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when
@@ -135,10 +135,10 @@ public class MongobeeProfileTest {
   }
 
   @Test
-  public void shouldRunChangesetsWhenNoEnv() throws Exception {
+  public void shouldRunChangeSetsWhenNoEnv() throws Exception {
     // given
     runner.setSpringEnvironment(null);
-    runner.setChangelogsScanPackage(AnotherMongobeeTestResource.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(AnotherMongobeeTestResource.class.getPackage().getName());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when
@@ -150,10 +150,10 @@ public class MongobeeProfileTest {
   }
 
   @Test
-  public void shouldRunChangesetsWhenEmptyEnv() throws Exception {
+  public void shouldRunChangeSetsWhenEmptyEnv() throws Exception {
     // given
     runner.setSpringEnvironment(new EnvironmentMock());
-    runner.setChangelogsScanPackage(AnotherMongobeeTestResource.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(AnotherMongobeeTestResource.class.getPackage().getName());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when
@@ -165,10 +165,10 @@ public class MongobeeProfileTest {
   }
 
   @Test
-  public void shouldRunAllChangesets() throws Exception {
+  public void shouldRunAllChangeSets() throws Exception {
     // given
     runner.setSpringEnvironment(new EnvironmentMock("dev"));
-    runner.setChangelogsScanPackage(AnotherMongobeeTestResource.class.getPackage().getName());
+    runner.setChangeLogsScanPackage(AnotherMongobeeTestResource.class.getPackage().getName());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when

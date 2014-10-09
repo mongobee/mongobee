@@ -17,15 +17,15 @@ public class ChangeEntry {
   private String changeId;
   private String author;
   private Date timestamp;
-  private String changelogClass;
-  private String changesetMethodName;
+  private String changeLogClass;
+  private String changeSetMethodName;
 
-  public ChangeEntry(String changeId, String author, Date timestamp, String changelogClass, String changesetMethodName) {
+  public ChangeEntry(String changeId, String author, Date timestamp, String changeLogClass, String changeSetMethodName) {
     this.changeId = changeId;
     this.author = author;
     this.timestamp = new Date(timestamp.getTime());
-    this.changelogClass = changelogClass;
-    this.changesetMethodName = changesetMethodName;
+    this.changeLogClass = changeLogClass;
+    this.changeSetMethodName = changeSetMethodName;
   }
 
   public DBObject buildFullDBObject(){
@@ -34,8 +34,8 @@ public class ChangeEntry {
     entry.append("changeId", this.changeId)
             .append("author", this.author)
             .append("timestamp", this.timestamp)
-            .append("changelogClass", this.changelogClass)
-            .append("changesetMethod", this.changesetMethodName);
+            .append("changeLogClass", this.changeLogClass)
+            .append("changeSetMethod", this.changeSetMethodName);
     
     return entry;
   }
@@ -48,10 +48,10 @@ public class ChangeEntry {
 
   @Override
   public String toString() {
-    return "[Changeset: id=" + this.changeId +
+    return "[ChangeSet: id=" + this.changeId +
             ", author=" + this.author +
-            ", changelogClass=" + this.changelogClass +
-            ", changesetMethod=" + this.changesetMethodName + "]";
+            ", changeLogClass=" + this.changeLogClass +
+            ", changeSetMethod=" + this.changeSetMethodName + "]";
   }
 
   public String getChangeId() {
@@ -66,11 +66,11 @@ public class ChangeEntry {
     return this.timestamp;
   }
 
-  public String getChangelogClass() {
-    return this.changelogClass;
+  public String getChangeLogClass() {
+    return this.changeLogClass;
   }
 
-  public String getChangesetMethodName() {
-    return this.changesetMethodName;
+  public String getChangeSetMethodName() {
+    return this.changeSetMethodName;
   }
 }
