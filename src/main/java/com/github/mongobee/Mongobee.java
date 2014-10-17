@@ -6,6 +6,7 @@ import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.utils.ChangeService;
 import com.mongodb.DB;
+import com.mongodb.Mongo;
 import com.mongodb.MongoClientURI;
 import org.jongo.Jongo;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ public class Mongobee implements InitializingBean {
   private boolean enabled = true;
   private String changeLogsScanPackage;
   private MongoClientURI mongoClientURI;
+  private Mongo mongo;
   private String dbName;
   private Environment springEnvironment;
 
@@ -58,6 +60,18 @@ public class Mongobee implements InitializingBean {
   public Mongobee(MongoClientURI mongoClientURI) {
     this.mongoClientURI = mongoClientURI;
     this.setDbName(mongoClientURI.getDatabase());
+    this.dao = new ChangeEntryDao();
+  }
+
+  /**
+   * <p>Constructor takes db.mongodb.Mongo object as a parameter.
+   * </p><p>For more details about Mongo please see com.mongodb.Mongo
+   * </p>
+   * @param mongo uri to your db
+   * @see Mongo
+   */
+  public Mongobee(Mongo mongo) {
+    this.mongo = mongo;
     this.dao = new ChangeEntryDao();
   }
 
@@ -120,7 +134,12 @@ public class Mongobee implements InitializingBean {
 
     logger.info("Mongobee has started the data migration sequence..");
     
-    dao.connectMongoDb(mongoClientURI, dbName);
+    if (this.mongo != null) {
+    	dao.connectMongoDb(this.mongo, dbName);	
+    } else {
+    	dao.connectMongoDb(this.mongoClientURI, dbName);	
+    }
+    
 
     ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
