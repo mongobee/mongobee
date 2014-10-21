@@ -19,16 +19,19 @@ public class ChangeEntryDao {
 
   private DB db;
   
+  public DB connectMongoDb(Mongo mongo, String dbName) throws UnknownHostException {
+    if (!hasText(dbName)){
+      throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
+    } else {
+      db = mongo.getDB(dbName);
+      return db;
+    }
+  }
+
   public DB connectMongoDb(MongoClientURI mongoClientURI, String dbName) throws UnknownHostException {
     MongoClient mongoClient = new MongoClient(mongoClientURI);
     String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
-
-    if (!hasText(database)){
-      throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
-    } else {
-      db = mongoClient.getDB(database);
-      return db;
-    }
+    return this.connectMongoDb(mongoClient, database);
   }
 
   public boolean isNewChange(ChangeEntry changeEntry) {
