@@ -52,7 +52,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * <p>Constructor takes db.mongodb.MongoClientURI object as a parameter.
-   * </p><p>For more details about MongoClientURI please see com.mongodb.MongoClientURI
+   * </p><p>For more details about MongoClientURI please see com.mongodb.MongoClientURI docs
    * </p>
    * @param mongoClientURI uri to your db
    * @see MongoClientURI
@@ -65,9 +65,9 @@ public class Mongobee implements InitializingBean {
 
   /**
    * <p>Constructor takes db.mongodb.Mongo object as a parameter.
-   * </p><p>For more details about Mongo please see com.mongodb.Mongo
+   * </p><p>For more details about <tt>Mongo</tt> please see com.mongodb.Mongo docs
    * </p>
-   * @param mongo uri to your db
+   * @param mongo database connection
    * @see Mongo
    */
   public Mongobee(Mongo mongo) {
@@ -93,7 +93,7 @@ public class Mongobee implements InitializingBean {
    * <b>Mongobee will operate on the database provided here or on the database overriden by setter setDbName(String).</b>
    * </li>
    *
-   * <li>{@code ?options} are connection options. For list of options please see com.mongodb.MongoClientURI</li>
+   * <li>{@code ?options} are connection options. For list of options please see com.mongodb.MongoClientURI docs</li>
    * </ul>
    *
    * <p>For details, please see com.mongodb.MongoClientURI
