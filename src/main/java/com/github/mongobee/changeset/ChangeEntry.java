@@ -12,7 +12,7 @@ import java.util.Date;
  * @since 27/07/2014
  */
 public class ChangeEntry {
-  public static final String CHANGELOG_COLLECTION = "dbchangelog";
+  public static final String CHANGELOG_COLLECTION = "dbchangelog"; // ! Don't change due to backward compatibility issue
 
   private String changeId;
   private String author;
