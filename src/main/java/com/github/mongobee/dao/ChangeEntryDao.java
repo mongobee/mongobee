@@ -33,7 +33,7 @@ public class ChangeEntryDao {
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     } else {
       db = mongo.getDB(dbName);
-      // ensureChangelogCollectionIndexes(db.getCollection(CHANGELOG_COLLECTION)); // TODO Issue#14
+       ensureChangelogCollectionIndexes(db.getCollection(CHANGELOG_COLLECTION)); // TODO Issue#14
       return db;
     }
   }
@@ -62,7 +62,7 @@ public class ChangeEntryDao {
 
   private void verifyDbConnection(){
     if (getDb() == null) {
-      throw new MongobeeConnectionException("Database is not connected. Mongobee thrown unexpected error",
+      throw new MongobeeConnectionException("Database is not connected. Mongobee has thrown an unexpected error",
         new NullPointerException());
     }
   }
@@ -70,6 +70,33 @@ public class ChangeEntryDao {
   // TODO Issue#14: add changeId_1_author_1 + unique: true
   private void ensureChangelogCollectionIndexes(DBCollection collection) {
 
+    BasicDBObject index = findIndex(collection);
+    if (index != null && !isUnique(index)){
+      // todo remove index,
+
+
+      // todo create new one
+      //collection.createIndex(new BasicDBObject().append("changeId", 1).append("author", 1), new BasicDBObject("unique", true));
+
+    } else if (index == null) {
+      // todo create index
+      // collection.createIndex(new BasicDBObject().append("changeId", 1).append("author", 1), new BasicDBObject("unique", true));
+
+      // indexes created
+      logger.debug("Indexes in collection " + CHANGELOG_COLLECTION + " was created");
+    }
+
+
+  }
+
+  private boolean isUnique(BasicDBObject index) {
+
+    // todo check if the index has unique attribute
+
+    return false;  // fixme
+  }
+
+  private BasicDBObject findIndex(DBCollection collection) {
     List<DBObject> indexInfo = collection.getIndexInfo();
     for (com.mongodb.DBObject ind : indexInfo){
       Object key = ind.get("key");
@@ -79,20 +106,18 @@ public class ChangeEntryDao {
 
         BasicDBObject indexKey = (BasicDBObject) key;
         if (indexKey.get("changeId") instanceof Integer &&  ((Integer)indexKey.get("changeId")) == 1 &&
-            indexKey.get("author") instanceof Integer &&  ((Integer)indexKey.get("author")) == 1){
+          indexKey.get("author") instanceof Integer &&  ((Integer)indexKey.get("author")) == 1){
 
-          //indexes exist
-          logger.debug("Indexes in collection " + CHANGELOG_COLLECTION + " are correct");
-        } else {
-          collection.createIndex(new BasicDBObject().append("changeId", 1).append("author", 1));
-
-          // indexes created
-          logger.debug("Indexes in collection " + CHANGELOG_COLLECTION + " was created");
+          return indexKey;
         }
 
       }
     }
 
+    return null;  // not found
   }
+
+  // todo refactor index checking and creating to separate util class
+
 
 }
