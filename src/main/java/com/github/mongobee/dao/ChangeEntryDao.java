@@ -70,7 +70,7 @@ public class ChangeEntryDao {
   // TODO Issue#14: add changeId_1_author_1 + unique: true
   private void ensureChangelogCollectionIndexes(DBCollection collection) {
 
-    BasicDBObject index = findIndex(collection);
+    DBObject index = findRequiredIndex(collection);
     if (index != null && !isUnique(index)){
       // todo remove index,
 
@@ -89,31 +89,25 @@ public class ChangeEntryDao {
 
   }
 
-  private boolean isUnique(BasicDBObject index) {
-
-    // todo check if the index has unique attribute
-
-    return false;  // fixme
+  private boolean isUnique(DBObject index) {
+    if (index.get("unique") != null && index.get("unique") instanceof Boolean){
+      return (Boolean) index.get("unique");
+    } else {
+      return false;
+    }
   }
 
-  private BasicDBObject findIndex(DBCollection collection) {
-    List<DBObject> indexInfo = collection.getIndexInfo();
-    for (com.mongodb.DBObject ind : indexInfo){
-      Object key = ind.get("key");
-      if (key instanceof BasicDBObject){
-
-        // FIXME refactor: 1. search for it, if no: create, else check if unique if no: delete & add unique,
-
-        BasicDBObject indexKey = (BasicDBObject) key;
-        if (indexKey.get("changeId") instanceof Integer &&  ((Integer)indexKey.get("changeId")) == 1 &&
-          indexKey.get("author") instanceof Integer &&  ((Integer)indexKey.get("author")) == 1){
-
-          return indexKey;
-        }
-
+  private DBObject findRequiredIndex(DBCollection collection) {
+    List<DBObject> indices = collection.getIndexInfo();
+    for (com.mongodb.DBObject index : indices){
+      Object key = index.get("key");
+      if (key.equals(new BasicDBObject().append("changeId",1).append("author",1))){
+        // todo here it is a problem: changeId_1_author_1 equals to author_1_changeId_1 !!!
+        // solution: return collection and remove all not unique
+        // solution2: check here if unique if not remove   << better?
+        return index;
       }
     }
-
     return null;  // not found
   }
 
