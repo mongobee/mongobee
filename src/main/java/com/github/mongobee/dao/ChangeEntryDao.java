@@ -4,10 +4,15 @@ import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
 import com.mongodb.*;
+import org.jongo.Jongo;
+import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
+import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.SortedSet;
 
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.springframework.util.StringUtils.hasText;
@@ -18,6 +23,7 @@ import static org.springframework.util.StringUtils.hasText;
  */
 public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
+  private static final String CHANGEID_AUTHOR_INDEX_NAME = "changeId_1_author_1";
 
   private DB db;
 
@@ -70,7 +76,7 @@ public class ChangeEntryDao {
       createRequiredUniqueIndex(collection);
       logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was created");
     } else if (!isUnique(index)) {
-      collection.dropIndex((BasicDBObject) index.get("name"));
+      collection.dropIndex(index.get("name").toString());
       createRequiredUniqueIndex(collection);
       logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was recreated");
     }
@@ -87,8 +93,8 @@ public class ChangeEntryDao {
 
   private DBObject findRequiredChangeAuthorIndex (DBCollection collection) {
     for (DBObject index : collection.getIndexInfo()){
-      Object key = index.get("key");
-      if (key.equals(new BasicDBObject().append("changeId",1).append("author",1))){ // TODO: wrong checking :(
+      String indexName =  index.get("name").toString(); // TODO: find better way to indicate the index
+      if (CHANGEID_AUTHOR_INDEX_NAME.equals(indexName)) {
         return index;
       }
     }
