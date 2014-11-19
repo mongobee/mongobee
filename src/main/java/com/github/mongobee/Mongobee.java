@@ -222,7 +222,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Sets uri to MongoDB
-   * @param mongoClientURI
+   * @param mongoClientURI object with defined mongo uri
    * @return Mongobee object for fluent interface
    */
   public Mongobee setMongoClientURI(MongoClientURI mongoClientURI) {
@@ -249,7 +249,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Feature which enables/disables Mongobee runner execution
-   * @param enabled
+   * @param enabled MOngobee will run only if this option is set to true
    * @return Mongobee object for fluent interface
    */
   public Mongobee setEnabled(boolean enabled) {
@@ -258,8 +258,8 @@ public class Mongobee implements InitializingBean {
   }
 
   /**
-   * Set Environment for Spring Profiles integration
-   * @param environment
+   * Set Environment object for Spring Profiles (@Profile) integration
+   * @param environment org.springframework.core.env.Environment object to inject
    * @return Mongobee object for fluent interface
    */
   public Mongobee setSpringEnvironment(Environment environment) {
