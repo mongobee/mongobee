@@ -122,11 +122,7 @@ public class Mongobee implements InitializingBean {
     /**
      * Executing migration
      *
-     * @throws UnknownHostException      exception
-     * @throws NoSuchMethodException     exception
-     * @throws IllegalAccessException    exception
-     * @throws InvocationTargetException exception
-     * @throws InstantiationException    exception
+     * @throws MongobeeException      exception
      */
     public void execute() throws  MongobeeException {
         if (!isEnabled()) {
