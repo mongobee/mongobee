@@ -17,7 +17,6 @@ import org.springframework.core.env.Environment;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.UnknownHostException;
 import java.util.List;
 
 import static com.mongodb.ServerAddress.defaultHost;
@@ -122,9 +121,9 @@ public class Mongobee implements InitializingBean {
     /**
      * Executing migration
      *
-     * @throws MongobeeException      exception
+     * @throws MongobeeException exception
      */
-    public void execute() throws  MongobeeException {
+    public void execute() throws MongobeeException {
         if (!isEnabled()) {
             logger.info("Mongobee is disabled. Exiting.");
             return;
@@ -172,7 +171,7 @@ public class Mongobee implements InitializingBean {
                 throw new MongobeeException(e.getMessage());
             } catch (InvocationTargetException e) {
                 throw new MongobeeException(e.getMessage());
-            } catch (InstantiationException e){
+            } catch (InstantiationException e) {
                 throw new MongobeeException(e.getMessage());
             }
 
