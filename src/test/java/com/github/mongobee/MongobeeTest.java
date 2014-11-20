@@ -4,6 +4,7 @@ import com.github.fakemongo.Fongo;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.exception.MongobeeException;
 import com.github.mongobee.test.changelogs.MongobeeTestResource;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -35,7 +36,7 @@ public class MongobeeTest {
   private DB fakeDb;
 
   @Before
-  public void init() throws UnknownHostException {
+  public void init() throws MongobeeException, UnknownHostException {
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
       .thenReturn(fakeDb);
