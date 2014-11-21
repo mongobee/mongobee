@@ -39,7 +39,7 @@ public class MongobeeTest {
   public void init() throws MongobeeException, UnknownHostException {
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
-      .thenReturn(fakeDb);
+        .thenReturn(fakeDb);
     when(dao.getDb()).thenReturn(fakeDb);
     when(dao.save(any(ChangeEntry.class))).thenCallRealMethod();
 
@@ -50,7 +50,7 @@ public class MongobeeTest {
 
 
   @Test(expected = MongobeeConfigurationException.class)
-  public void shouldThrowAnExceptionIfNoDbNameSet() throws Exception{
+  public void shouldThrowAnExceptionIfNoDbNameSet() throws Exception {
     Mongobee runner = new Mongobee(new MongoClientURI("mongodb://localhost:27017/"));
     runner.setEnabled(true);
     runner.setChangeLogsScanPackage(MongobeeTestResource.class.getPackage().getName());
@@ -68,25 +68,25 @@ public class MongobeeTest {
     // then
     verify(dao, times(9)).save(any(ChangeEntry.class)); // 9 changesets saved to dbchangelog
 
-      // dbchangelog collection checking
+    // dbchangelog collection checking
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-      .append("changeId", "test1")
-      .append("author", "testuser")).count();
+        .append("changeId", "test1")
+        .append("author", "testuser")).count();
     assertEquals(1, change1);
     int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-      .append("changeId", "test2")
-      .append("author", "testuser")).count();
+        .append("changeId", "test2")
+        .append("author", "testuser")).count();
     assertEquals(1, change2);
     int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-      .append("changeId", "test3")
-      .append("author", "testuser")).count();
+        .append("changeId", "test3")
+        .append("author", "testuser")).count();
     assertEquals(1, change3);
     int change4 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-      .append("changeId", "test4")
-      .append("author", "testuser")).count();
+        .append("changeId", "test4")
+        .append("author", "testuser")).count();
     assertEquals(1, change4);
     int changeAll = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-      .append("author", "testuser")).count();
+        .append("author", "testuser")).count();
     assertEquals(9, changeAll);
   }
 
