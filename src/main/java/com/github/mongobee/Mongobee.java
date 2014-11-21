@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -189,6 +190,10 @@ public class Mongobee implements InitializingBean {
             logger.debug("method with Jongo argument");
 
             return changeSetMethod.invoke(changeLogInstance, new Jongo(db));
+        } else if (changeSetMethod.getParameterTypes().length == 1 && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
+            logger.debug("method with MongoTemplate argument");
+
+          return changeSetMethod.invoke(changeLogInstance, new MongoTemplate(db.getMongo(), dbName));
         } else if (changeSetMethod.getParameterTypes().length == 0) {
             logger.debug("method with no params");
 

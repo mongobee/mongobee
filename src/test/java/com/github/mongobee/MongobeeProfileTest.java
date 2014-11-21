@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeProfileTest {
 
+  public static final int CHANGELOG_COUNT = 10;
   @InjectMocks
   private Mongobee runner = new Mongobee();
 
@@ -146,7 +147,7 @@ public class MongobeeProfileTest {
 
     // then
     int changes = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()).count();
-    assertEquals(9, changes);
+    assertEquals(CHANGELOG_COUNT, changes);
   }
 
   @Test
@@ -161,7 +162,7 @@ public class MongobeeProfileTest {
 
     // then
     int changes = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()).count();
-    assertEquals(9, changes);
+    assertEquals(CHANGELOG_COUNT, changes);
   }
 
   @Test
@@ -176,7 +177,7 @@ public class MongobeeProfileTest {
 
     // then
     int changes = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()).count();
-    assertEquals(9, changes);
+    assertEquals(CHANGELOG_COUNT, changes);
   }
 
 }
