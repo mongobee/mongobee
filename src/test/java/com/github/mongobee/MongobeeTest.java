@@ -66,7 +66,7 @@ public class MongobeeTest {
     runner.execute();
 
     // then
-    verify(dao, times(9)).save(any(ChangeEntry.class)); // 9 changesets saved to dbchangelog
+    verify(dao, times(10)).save(any(ChangeEntry.class)); // 10 changesets saved to dbchangelog
 
     // dbchangelog collection checking
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
