@@ -24,12 +24,12 @@
         <connection>scm:git:git@github.com:mongobee/mongobee.git</connection>
         <developerConnection>scm:git:git@github.com:mongobee/mongobee.git</developerConnection>
         <url>git@github.com:mongobee/mongobee.git</url>
-        <tag>mongobee-0.5</tag>
+        <tag>mongobee-tag</tag>
     </scm>
 
     <developers>
         <developer>
-            <id>aaranost</id>
+            <id>lstolowski</id>
             <name>lstolowski</name>
         </developer>
     </developers>

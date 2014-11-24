@@ -182,15 +182,18 @@ public class Mongobee implements InitializingBean {
 
   private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db)
       throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
-    if (changeSetMethod.getParameterTypes().length == 1 && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
+    if (changeSetMethod.getParameterTypes().length == 1
+        && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
       logger.debug("method with DB argument");
 
       return changeSetMethod.invoke(changeLogInstance, db);
-    } else if (changeSetMethod.getParameterTypes().length == 1 && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
+    } else if (changeSetMethod.getParameterTypes().length == 1
+        && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
       logger.debug("method with Jongo argument");
 
       return changeSetMethod.invoke(changeLogInstance, new Jongo(db));
-    } else if (changeSetMethod.getParameterTypes().length == 1 && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
+    } else if (changeSetMethod.getParameterTypes().length == 1
+        && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
       return changeSetMethod.invoke(changeLogInstance, new MongoTemplate(db.getMongo(), dbName));
