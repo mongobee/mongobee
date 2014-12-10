@@ -20,6 +20,7 @@ public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
 
   private DB db;
+  private ChangeEntryIndexDao indexDao = new ChangeEntryIndexDao();
 
   public DB getDb() {
     return db;
@@ -30,7 +31,7 @@ public class ChangeEntryDao {
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     } else {
       db = mongo.getDB(dbName);
-      ensureChangeLogCollectionIndex(db.getCollection(CHANGELOG_COLLECTION)); // TODO Issue#14
+      ensureChangeLogCollectionIndex(db.getCollection(CHANGELOG_COLLECTION));
       return db;
     }
   }
@@ -71,42 +72,23 @@ public class ChangeEntryDao {
   }
 
   private void ensureChangeLogCollectionIndex(DBCollection collection) {
-    DBObject index = findRequiredChangeAndAuthorIndex();
+    DBObject index = indexDao.findRequiredChangeAndAuthorIndex(db);
     if (index == null) {
-      createRequiredUniqueIndex(collection);
+      indexDao.createRequiredUniqueIndex(collection);
       logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was created");
-    } else if (!isUnique(index)) {
-      collection.dropIndex(index.get("name").toString());
-      createRequiredUniqueIndex(collection);
+    } else if (!indexDao.isUnique(index)) {
+      indexDao.dropIndex(collection, index);
+      indexDao.createRequiredUniqueIndex(collection);
       logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was recreated");
     }
 
   }
 
-  private void createRequiredUniqueIndex(DBCollection collection) {
-    collection.createIndex(new BasicDBObject()
-          .append(ChangeEntry.KEY_CHANGEID, 1)
-          .append(ChangeEntry.KEY_AUTHOR, 1),
-        new BasicDBObject().append("unique", true));
+
+  /* Visible for testing */
+  void setIndexDao(ChangeEntryIndexDao changeEntryIndexDao) {
+    this.indexDao = changeEntryIndexDao;
   }
 
-  private DBObject findRequiredChangeAndAuthorIndex() {
-    DBCollection indexes = db.getCollection("system.indexes");
-    DBObject index = indexes.findOne(new BasicDBObject()
-            .append("ns", db.getName() + "." + CHANGELOG_COLLECTION)
-            .append("key", new BasicDBObject().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
-    );
-
-    return index;
-  }
-
-  private boolean isUnique(DBObject index) {
-    Object unique = index.get("unique");
-    if (unique != null && unique instanceof Boolean) {
-      return (Boolean) unique;
-    } else {
-      return false;
-    }
-  }
 
 }
