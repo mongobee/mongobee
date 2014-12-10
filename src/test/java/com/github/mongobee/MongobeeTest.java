@@ -70,23 +70,23 @@ public class MongobeeTest {
 
     // dbchangelog collection checking
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-        .append("changeId", "test1")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "test1")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change1);
     int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-        .append("changeId", "test2")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "test2")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change2);
     int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-        .append("changeId", "test3")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "test3")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change3);
     int change4 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-        .append("changeId", "test4")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "test4")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change4);
     int changeAll = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(9, changeAll);
   }
 

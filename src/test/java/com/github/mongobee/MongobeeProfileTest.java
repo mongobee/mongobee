@@ -67,20 +67,20 @@ public class MongobeeProfileTest {
     // then
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION)
           .find(new BasicDBObject()
-            .append("changeId", "Pdev1")
-            .append("author", "testuser")).count();
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change1);  //  no-@Profile  should not match
 
     int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION)
           .find(new BasicDBObject()
-            .append("changeId", "Pdev4")
-            .append("author", "testuser")).count();
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change2);  //  @Profile("dev")  should not match
 
     int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION)
           .find(new BasicDBObject()
-            .append("changeId", "Pdev3")
-            .append("author", "testuser")).count();
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(0, change3);  //  @Profile("default")  should not match
   }
 
@@ -97,26 +97,26 @@ public class MongobeeProfileTest {
     // then
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION)
       .find(new BasicDBObject()
-        .append("changeId", "Pdev1")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change1);
 
     int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION)
       .find(new BasicDBObject()
-        .append("changeId", "Pdev2")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "Pdev2")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change2);
 
     int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION)
       .find(new BasicDBObject()
-        .append("changeId", "Pdev3")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change3);  //  @Profile("dev")  should not match
 
     int change4 = fakeDb.getCollection(CHANGELOG_COLLECTION)
       .find(new BasicDBObject()
-        .append("changeId", "Pdev4")
-        .append("author", "testuser")).count();
+        .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(0, change4);  //  @Profile("default")  should not match
   }
 

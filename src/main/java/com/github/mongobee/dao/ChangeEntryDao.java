@@ -18,7 +18,6 @@ import static org.springframework.util.StringUtils.hasText;
  */
 public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
-  private static final String CHANGEID_AUTHOR_INDEX_NAME = "changeId_1_author_1";
 
   private DB db;
 
@@ -85,14 +84,17 @@ public class ChangeEntryDao {
   }
 
   private void createRequiredUniqueIndex(DBCollection collection) {
-    collection.createIndex(new BasicDBObject().append("changeId", 1).append("author", 1), new BasicDBObject().append("unique", true));
+    collection.createIndex(new BasicDBObject()
+          .append(ChangeEntry.KEY_CHANGEID, 1)
+          .append(ChangeEntry.KEY_AUTHOR, 1),
+        new BasicDBObject().append("unique", true));
   }
 
   private DBObject findRequiredChangeAndAuthorIndex() {
     DBCollection indexes = db.getCollection("system.indexes");
     DBObject index = indexes.findOne(new BasicDBObject()
             .append("ns", db.getName() + "." + CHANGELOG_COLLECTION)
-            .append("key", new BasicDBObject().append("changeId", 1).append("author", 1))
+            .append("key", new BasicDBObject().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
     );
 
     return index;
