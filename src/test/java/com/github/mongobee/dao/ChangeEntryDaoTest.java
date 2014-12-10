@@ -16,8 +16,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * @author lstolowski
+ * @since 10.12.14
+ */
 public class ChangeEntryDaoTest {
-
   private static final String DB_NAME = "mongobeetest";
 
   @Test

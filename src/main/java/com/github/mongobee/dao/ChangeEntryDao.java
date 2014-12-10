@@ -84,11 +84,9 @@ public class ChangeEntryDao {
 
   }
 
-
   /* Visible for testing */
   void setIndexDao(ChangeEntryIndexDao changeEntryIndexDao) {
     this.indexDao = changeEntryIndexDao;
   }
-
 
 }

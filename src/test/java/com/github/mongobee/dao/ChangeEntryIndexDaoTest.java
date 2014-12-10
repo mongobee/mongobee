@@ -16,6 +16,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * @author lstolowski
+ * @since 10.12.14
+ */
 public class ChangeEntryIndexDaoTest {
 
   private static final String DB_NAME = "mongobeetest";
