@@ -72,7 +72,7 @@ public class ChangeEntryDao {
   }
 
   private void ensureChangeLogCollectionIndex(DBCollection collection) {
-    DBObject index = findRequiredChangeAuthorIndex(collection);
+    DBObject index = findRequiredChangeAndAuthorIndex();
     if (index == null) {
       createRequiredUniqueIndex(collection);
       logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was created");
@@ -88,14 +88,14 @@ public class ChangeEntryDao {
     collection.createIndex(new BasicDBObject().append("changeId", 1).append("author", 1), new BasicDBObject().append("unique", true));
   }
 
-  private DBObject findRequiredChangeAuthorIndex(DBCollection collection) {
-    for (DBObject index : collection.getIndexInfo()) {
-      String indexName = index.get("name").toString(); // TODO: find better way to indicate the index
-      if (CHANGEID_AUTHOR_INDEX_NAME.equals(indexName)) {
-        return index;
-      }
-    }
-    return null;
+  private DBObject findRequiredChangeAndAuthorIndex() {
+    DBCollection indexes = db.getCollection("system.indexes");
+    DBObject index = indexes.findOne(new BasicDBObject()
+            .append("ns", db.getName() + "." + CHANGELOG_COLLECTION)
+            .append("key", new BasicDBObject().append("changeId", 1).append("author", 1))
+    );
+
+    return index;
   }
 
   private boolean isUnique(DBObject index) {
