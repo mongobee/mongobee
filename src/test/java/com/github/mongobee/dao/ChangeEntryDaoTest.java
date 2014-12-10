@@ -1,21 +1,15 @@
 package com.github.mongobee.dao;
 
 import com.github.fakemongo.Fongo;
-import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
-import org.jongo.Find;
-import org.jongo.FindOne;
-import org.jongo.Jongo;
-import org.jongo.MongoCollection;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
