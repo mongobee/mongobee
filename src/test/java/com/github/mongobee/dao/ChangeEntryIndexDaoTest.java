@@ -12,6 +12,8 @@ import org.mockito.Mockito;
 
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -21,60 +23,62 @@ import static org.mockito.Mockito.when;
  * @since 10.12.14
  */
 public class ChangeEntryIndexDaoTest {
-
+  private static final String TEST_SERVER = "testServer";
   private static final String DB_NAME = "mongobeetest";
+  private static final String CHANGEID_AUTHOR_INDEX_NAME = "changeId_1_author_1";
+
   private ChangeEntryIndexDao dao = new ChangeEntryIndexDao();
 
   @Test
-  public void shouldCreateRequiredUniqueIndex(){
+  public void shouldCreateRequiredUniqueIndex() {
     // given
     Mongo mongo = mock(Mongo.class);
-    DB db = new Fongo("testServer").getDB(DB_NAME);
+    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
 
     // when
     dao.createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION));
 
-
     // then
-    assertTrue(findIndex(db, "changeId_1_author_1"));
+    DBObject createdIndex = findIndex(db, CHANGEID_AUTHOR_INDEX_NAME);
+    assertNotNull(createdIndex);
+    assertTrue(dao.isUnique(createdIndex));
   }
 
   @Test
-  public void shouldDropWrongIndex(){
+  public void shouldDropWrongIndex() {
     // init
     Mongo mongo = mock(Mongo.class);
-    DB db = new Fongo("testServer").getDB(DB_NAME);
+    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
-
 
     DBCollection collection = db.getCollection(CHANGELOG_COLLECTION);
     collection.createIndex(new BasicDBObject()
-            .append(ChangeEntry.KEY_CHANGEID, 1)
-            .append(ChangeEntry.KEY_AUTHOR, 1));
-    DBObject index = new BasicDBObject("name", "changeId_1_author_1");
+        .append(ChangeEntry.KEY_CHANGEID, 1)
+        .append(ChangeEntry.KEY_AUTHOR, 1));
+    DBObject index = new BasicDBObject("name", CHANGEID_AUTHOR_INDEX_NAME);
 
     // given
-    assertTrue(findIndex(db, "changeId_1_author_1"));
+    DBObject createdIndex = findIndex(db, CHANGEID_AUTHOR_INDEX_NAME);
+    assertNotNull(createdIndex);
+    assertFalse(dao.isUnique(createdIndex));
 
     // when
     dao.dropIndex(db.getCollection(CHANGELOG_COLLECTION), index);
 
-
     // then
-    assertFalse(findIndex(db, "changeId_1_author_1"));
-
+    assertNull(findIndex(db, CHANGEID_AUTHOR_INDEX_NAME));
   }
 
 
-  private boolean findIndex(DB db, String indexName){
-    for (DBObject dbObject : db.getCollection(CHANGELOG_COLLECTION).getIndexInfo()) {
-      String name = (String) dbObject.get("name");
-      if (indexName.equals(name)){
-        return true;
+  private DBObject findIndex(DB db, String indexName) {
+    for (DBObject index : db.getCollection(CHANGELOG_COLLECTION).getIndexInfo()) {
+      String name = (String) index.get("name");
+      if (indexName.equals(name)) {
+        return index;
       }
     }
-    return false;
+    return null;
   }
 
 }

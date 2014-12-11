@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
  * @since 10.12.14
  */
 public class ChangeEntryDaoTest {
+  private static final String TEST_SERVER = "testServer";
   private static final String DB_NAME = "mongobeetest";
 
   @Test
@@ -28,7 +29,7 @@ public class ChangeEntryDaoTest {
 
     // given
     Mongo mongo = mock(Mongo.class);
-    DB db = new Fongo("testServer").getDB(DB_NAME);
+    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
 
     ChangeEntryDao dao = new ChangeEntryDao();
@@ -41,6 +42,7 @@ public class ChangeEntryDaoTest {
 
     //then
     verify(indexDaoMock, times(1)).createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION));
+    // and not
     verify(indexDaoMock, times(0)).dropIndex(db.getCollection(CHANGELOG_COLLECTION), new BasicDBObject());
   }
 
@@ -49,7 +51,7 @@ public class ChangeEntryDaoTest {
 
     // given
     Mongo mongo = mock(Mongo.class);
-    DB db = new Fongo("testServer").getDB(DB_NAME);
+    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
 
     ChangeEntryDao dao = new ChangeEntryDao();
@@ -63,15 +65,16 @@ public class ChangeEntryDaoTest {
 
     //then
     verify(indexDaoMock, times(0)).createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION));
+    // and not
     verify(indexDaoMock, times(0)).dropIndex(db.getCollection(CHANGELOG_COLLECTION), new BasicDBObject());
   }
 
   @Test
-  public void shouldCreateChangeIdAuthorIndexIfNotUnique() throws MongobeeConfigurationException {
+  public void shouldRecreateChangeIdAuthorIndexIfFoundNotUnique() throws MongobeeConfigurationException {
 
     // given
     Mongo mongo = mock(Mongo.class);
-    DB db = new Fongo("testServer").getDB(DB_NAME);
+    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
 
     ChangeEntryDao dao = new ChangeEntryDao();
@@ -84,8 +87,9 @@ public class ChangeEntryDaoTest {
     dao.connectMongoDb(mongo, DB_NAME);
 
     //then
-    verify(indexDaoMock, times(1)).createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION));
     verify(indexDaoMock, times(1)).dropIndex(db.getCollection(CHANGELOG_COLLECTION), new BasicDBObject());
+    // and
+    verify(indexDaoMock, times(1)).createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION));
   }
 
 
