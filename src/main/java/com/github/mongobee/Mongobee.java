@@ -15,11 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-
 import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
 import static org.springframework.util.StringUtils.hasText;
@@ -167,13 +165,14 @@ public class Mongobee implements InitializingBean {
           }
         }
       } catch (NoSuchMethodException e) {
-        throw new MongobeeException(e.getMessage());
+        throw new MongobeeException(e.getMessage(), e);
       } catch (IllegalAccessException e) {
-        throw new MongobeeException(e.getMessage());
+        throw new MongobeeException(e.getMessage(), e);
       } catch (InvocationTargetException e) {
-        throw new MongobeeException(e.getMessage());
+        Throwable targetException = e.getTargetException();
+        throw new MongobeeException(targetException.getMessage(), e);
       } catch (InstantiationException e) {
-        throw new MongobeeException(e.getMessage());
+        throw new MongobeeException(e.getMessage(), e);
       }
 
     }
