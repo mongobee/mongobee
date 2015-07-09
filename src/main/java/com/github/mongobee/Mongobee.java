@@ -39,6 +39,9 @@ public class Mongobee implements InitializingBean {
   private Mongo mongo;
   private String dbName;
   private Environment springEnvironment;
+  
+  private MongoTemplate mongoTemplate;
+  private Jongo jongo;
 
   /**
    * <p>Simple constructor with default configuration of host (localhost) and port (27017). Although
@@ -190,12 +193,12 @@ public class Mongobee implements InitializingBean {
         && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
       logger.debug("method with Jongo argument");
 
-      return changeSetMethod.invoke(changeLogInstance, new Jongo(db));
+      return changeSetMethod.invoke(changeLogInstance, jongo != null ? jongo : new Jongo(db));
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
-      return changeSetMethod.invoke(changeLogInstance, new MongoTemplate(db.getMongo(), dbName));
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName));
     } else if (changeSetMethod.getParameterTypes().length == 0) {
       logger.debug("method with no params");
 
@@ -276,4 +279,23 @@ public class Mongobee implements InitializingBean {
     this.springEnvironment = environment;
     return this;
   }
+  /**
+   * Sets pre-configured {@link MongoTemplate} instance to use by the Mongobee 
+   * @param mongoTemplate instance of the {@link MongoTemplate}
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setMongoTemplate(MongoTemplate mongoTemplate) {
+    this.mongoTemplate = mongoTemplate;
+    return this;
+  }
+  /**
+   * Sets pre-configured {@link MongoTemplate} instance to use by the Mongobee 
+   * @param jongo {@link Jongo} instance  
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setJongo(Jongo jongo) {
+    this.jongo = jongo;
+    return this;
+  }
+  
 }
