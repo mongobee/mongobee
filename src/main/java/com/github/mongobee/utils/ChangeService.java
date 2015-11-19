@@ -1,14 +1,16 @@
 package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
-import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
+import java.io.File;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -20,6 +22,8 @@ import static java.util.Arrays.asList;
  * @since 27/07/2014
  */
 public class ChangeService {
+  private static final Logger logger = LoggerFactory.getLogger(ChangeService.class);
+
   private static final String DEFAULT_PROFILE = "default";
 
   private final String changeLogsBasePackage;
@@ -40,8 +44,7 @@ public class ChangeService {
   }
 
   public List<Class<?>> fetchChangeLogs(){
-    Reflections reflections = new Reflections(changeLogsBasePackage);
-    Set<Class<?>> changeLogs = reflections.getTypesAnnotatedWith(ChangeLog.class); // TODO remove dependency, do own method
+    Set<Class<?>> changeLogs = getClassesInPackage(changeLogsBasePackage);
     List<Class<?>> filteredChangeLogs = (List<Class<?>>) filterByActiveProfiles(changeLogs);
 
     Collections.sort(filteredChangeLogs, new ChangeLogComparator());
@@ -111,6 +114,47 @@ public class ChangeService {
       }
     }
     return changesetMethods;
+  }
+
+  /**
+   * find all classes in a package
+   */
+  private static Set<Class<?>> getClassesInPackage(String packageName) {
+    Set<Class<?>> classes = new HashSet();
+    String packageNameSlashed = packageName.replace(".", "/");
+    // get a file object for the package
+    URL directoryURL = Thread.currentThread().getContextClassLoader().getResource(packageNameSlashed);
+    if (directoryURL == null) {
+      logger.warn("Could not retrieve URL resource: " + packageNameSlashed);
+      return classes;
+    }
+
+    String directoryString = directoryURL.getFile();
+    if (directoryString == null) {
+      logger.warn("Could not find directory for URL resource: " + packageNameSlashed);
+      return classes;
+    }
+
+    File directory = new File(directoryString);
+    if (directory.exists()) {
+      // Get the list of the files contained in the package
+      String[] files = directory.list();
+      for (String fileName : files) {
+        // We are only interested in .class files
+        if (fileName.endsWith(".class") || fileName.endsWith(".java")) {
+          // Remove the .class extension
+          fileName = fileName.substring(0, fileName.length() - 6);
+          try {
+            classes.add(Class.forName(packageName + "." + fileName));
+          } catch (ClassNotFoundException e) {
+            logger.warn(packageName + "." + fileName + " does not appear to be a valid class.", e);
+          }
+        }
+      }
+    } else {
+      logger.warn(packageName + " does not appear to exist as a valid package on the file system.");
+    }
+    return classes;
   }
 
 }
