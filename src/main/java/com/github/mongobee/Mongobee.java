@@ -10,14 +10,18 @@ import com.mongodb.DB;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClientURI;
 import org.jongo.Jongo;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+
 import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
 import static org.springframework.util.StringUtils.hasText;
@@ -42,6 +46,7 @@ public class Mongobee implements InitializingBean {
   
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
+  private Datastore morphiaDatastore;
 
   /**
    * <p>Simple constructor with default configuration of host (localhost) and port (27017). Although
@@ -195,6 +200,11 @@ public class Mongobee implements InitializingBean {
 
       return changeSetMethod.invoke(changeLogInstance, jongo != null ? jongo : new Jongo(db));
     } else if (changeSetMethod.getParameterTypes().length == 1
+            && changeSetMethod.getParameterTypes()[0].equals(Datastore.class)) {
+      logger.debug("method with MorphiaDatastore argument");
+
+      return changeSetMethod.invoke(changeLogInstance, morphiaDatastore);
+    } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
@@ -297,5 +307,13 @@ public class Mongobee implements InitializingBean {
     this.jongo = jongo;
     return this;
   }
-  
+
+  /**
+   * set morphiaDatastore to inject in ChangeSet
+   */
+  public Mongobee setMorphiaDatastore(Datastore morphiaDatastore) {
+    this.morphiaDatastore = morphiaDatastore;
+    return this;
+  }
+
 }
