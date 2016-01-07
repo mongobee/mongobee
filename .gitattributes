@@ -1,0 +1,8 @@
+* text eol=lf
+
+#bat files can have crlf as line ending
+*.bat text eol=crlf
+
+#don't mess with binary files
+*.jar binary
+
