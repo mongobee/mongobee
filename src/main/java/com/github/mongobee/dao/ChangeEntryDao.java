@@ -1,16 +1,24 @@
 package com.github.mongobee.dao;
 
-import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.exception.MongobeeConfigurationException;
-import com.github.mongobee.exception.MongobeeConnectionException;
-import com.mongodb.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
+import static org.springframework.util.StringUtils.hasText;
 
 import java.net.UnknownHostException;
 
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
-import static org.springframework.util.StringUtils.hasText;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.exception.MongobeeConnectionException;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.WriteResult;
 
 /**
  * @author lstolowski
@@ -18,9 +26,11 @@ import static org.springframework.util.StringUtils.hasText;
  */
 public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
-
+  
   private DB db;
   private ChangeEntryIndexDao indexDao = new ChangeEntryIndexDao();
+  
+  private LockDao lockDao = new LockDao();
 
   public DB getDb() {
     return db;
@@ -32,9 +42,11 @@ public class ChangeEntryDao {
     } else {
       db = mongo.getDB(dbName);
       ensureChangeLogCollectionIndex(db.getCollection(CHANGELOG_COLLECTION));
+      initializeLock();
       return db;
     }
   }
+
 
   public DB connectMongoDb(MongoClientURI mongoClientURI, String dbName)
       throws MongobeeConfigurationException, MongobeeConnectionException {
@@ -47,6 +59,26 @@ public class ChangeEntryDao {
     }
 
   }
+  
+  /**
+   * Try to acquire process lock
+   * @return true if successfully acquired, false otherwise
+   */
+  public boolean acquireProcessLock() throws MongobeeConnectionException{
+	verifyDbConnection();
+	return lockDao.acquireLock(getDb());
+  }
+  
+ 
+  public void releaseProcessLock() throws MongobeeConnectionException{
+	verifyDbConnection();
+	lockDao.releaseLock(getDb());
+  }
+  
+  public boolean isProccessLockHeld() throws MongobeeConnectionException{
+	verifyDbConnection();  
+	return lockDao.isLockHeld(getDb()); 
+  }
 
   public boolean isNewChange(ChangeEntry changeEntry) throws MongobeeConnectionException {
     verifyDbConnection();
@@ -54,7 +86,7 @@ public class ChangeEntryDao {
     DBCollection mongobeeChangeLog = getDb().getCollection(CHANGELOG_COLLECTION);
     DBObject entry = mongobeeChangeLog.findOne(changeEntry.buildSearchQueryDBObject());
 
-    return entry == null ? true : false;
+    return entry == null;
   }
 
   public WriteResult save(ChangeEntry changeEntry) throws MongobeeConnectionException {
@@ -83,10 +115,21 @@ public class ChangeEntryDao {
     }
 
   }
+  
+  private void initializeLock() {
+		lockDao.intitializeLock(db);
+  }
+
 
   /* Visible for testing */
   void setIndexDao(ChangeEntryIndexDao changeEntryIndexDao) {
     this.indexDao = changeEntryIndexDao;
   }
+
+  /* Visible for testing */
+  void setLockDao(LockDao lockDao) {
+	this.lockDao = lockDao;
+  }
+   
 
 }

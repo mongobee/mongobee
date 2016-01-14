@@ -48,6 +48,7 @@ public class MongobeeProfileTest {
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
       .thenReturn(fakeDb);
     when(dao.getDb()).thenReturn(fakeDb);
+    when(dao.acquireProcessLock()).thenReturn(true);
     when(dao.save(any(ChangeEntry.class))).thenCallRealMethod();
 
     runner.setDbName("mongobeetest");

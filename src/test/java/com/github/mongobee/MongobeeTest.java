@@ -2,11 +2,14 @@ package com.github.mongobee;
 
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import java.net.UnknownHostException;
@@ -71,6 +74,7 @@ public class MongobeeTest {
   @Test
   public void shouldExecute9ChangeSets() throws Exception {
     // given
+	when (dao.acquireProcessLock()).thenReturn(true);  
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when
@@ -117,6 +121,7 @@ public class MongobeeTest {
   public void shouldUsePreConfiguredMongoTemplate () throws Exception {
     MongoTemplate mt = mock(MongoTemplate.class);
     when(mt.getCollectionNames()).thenReturn(Collections.EMPTY_SET);
+    when (dao.acquireProcessLock()).thenReturn(true);
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
     runner.setMongoTemplate(mt);
     runner.afterPropertiesSet();
@@ -126,11 +131,63 @@ public class MongobeeTest {
   @Test
   public void shouldUsePreConfiguredJongo () throws Exception {
     Jongo jongo = mock(Jongo.class);
+    when (dao.acquireProcessLock()).thenReturn(true);
     when(jongo.getDatabase()).thenReturn(null);
     runner.setJongo(jongo);
     runner.afterPropertiesSet();
     verify(jongo).getDatabase();
   }
+  
+  
+  @Test
+  public void shouldExecuteProcessWhenLockAcquired() throws Exception{
+	  // given
+	  when (dao.acquireProcessLock()).thenReturn(true);
+	  
+	  // when
+	  runner.execute();
+	  
+	  // then
+	  verify(dao, atLeastOnce()).isNewChange(any(ChangeEntry.class));
+  }
+  
+  @Test
+  public void shouldReleaseLockAfterWhenLockAcquired() throws Exception{
+	  // given
+	  when (dao.acquireProcessLock()).thenReturn(true);
+	  
+	  // when
+	  runner.execute();
+	  
+	  // then
+	  verify(dao).releaseProcessLock();
+  }
+  
+  @Test
+  public void shouldNotExecuteProcessWhenLockNotAcquired() throws Exception{
+	  // given
+	  when (dao.acquireProcessLock()).thenReturn(false);
+	  
+	  // when
+	  runner.execute();
+	  
+	  // then
+	  verify(dao, never()).isNewChange(any(ChangeEntry.class));
+  }
+  
+  
+  @Test
+  public void shouldReturnExecutionStatusBasedOnDao() throws Exception{
+	  // given
+	  when (dao.isProccessLockHeld()).thenReturn(true);
+	  
+	  boolean inProgress = runner.isExecutionInProgress();
+	  
+	  // then
+	  assertTrue(inProgress);
+  }
+  
+  
   
   @After
   public void cleanUp() {
