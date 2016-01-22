@@ -6,6 +6,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -28,7 +30,7 @@ public class ChangeEntryDaoTest {
   public void shouldCreateChangeIdAuthorIndexIfNotFound() throws MongobeeConfigurationException {
 
     // given
-    Mongo mongo = mock(Mongo.class);
+    MongoClient mongo = mock(MongoClient.class);
     DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
 
@@ -50,7 +52,7 @@ public class ChangeEntryDaoTest {
   public void shouldNotCreateChangeIdAuthorIndexIfFound() throws MongobeeConfigurationException {
 
     // given
-    Mongo mongo = mock(Mongo.class);
+    MongoClient mongo = mock(MongoClient.class);
     DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
 
@@ -73,7 +75,7 @@ public class ChangeEntryDaoTest {
   public void shouldRecreateChangeIdAuthorIndexIfFoundNotUnique() throws MongobeeConfigurationException {
 
     // given
-    Mongo mongo = mock(Mongo.class);
+    MongoClient mongo = mock(MongoClient.class);
     DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
     when(mongo.getDB(Mockito.anyString())).thenReturn(db);
 

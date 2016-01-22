@@ -4,10 +4,10 @@ import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
 import com.mongodb.*;
+import com.mongodb.client.MongoDatabase;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.UnknownHostException;
 
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.springframework.util.StringUtils.hasText;
@@ -20,17 +20,23 @@ public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
 
   private DB db;
+  private MongoDatabase mongoDatabase;
   private ChangeEntryIndexDao indexDao = new ChangeEntryIndexDao();
 
   public DB getDb() {
     return db;
   }
+  
+  public MongoDatabase getMongoDatabase() {
+	  return mongoDatabase;
+  }
 
-  public DB connectMongoDb(Mongo mongo, String dbName) throws MongobeeConfigurationException {
+  public DB connectMongoDb(MongoClient mongo, String dbName) throws MongobeeConfigurationException {
     if (!hasText(dbName)) {
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     } else {
       db = mongo.getDB(dbName);
+      mongoDatabase = mongo.getDatabase(dbName);
       ensureChangeLogCollectionIndex(db.getCollection(CHANGELOG_COLLECTION));
       return db;
     }
@@ -38,14 +44,9 @@ public class ChangeEntryDao {
 
   public DB connectMongoDb(MongoClientURI mongoClientURI, String dbName)
       throws MongobeeConfigurationException, MongobeeConnectionException {
-    try {
-      final Mongo mongoClient = new MongoClient(mongoClientURI);
-      final String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
-      return this.connectMongoDb(mongoClient, database);
-    } catch (UnknownHostException e) {
-      throw new MongobeeConnectionException(e.getMessage(), e);
-    }
-
+	  final MongoClient mongoClient = new MongoClient(mongoClientURI);
+	  final String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
+	  return this.connectMongoDb(mongoClient, database);
   }
 
   public boolean isNewChange(ChangeEntry changeEntry) throws MongobeeConnectionException {

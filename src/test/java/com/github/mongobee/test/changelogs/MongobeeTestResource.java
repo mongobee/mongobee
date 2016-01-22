@@ -2,6 +2,8 @@ package com.github.mongobee.test.changelogs;
 
 import com.github.mongobee.changeset.ChangeLog;
 import com.mongodb.DB;
+import com.mongodb.client.MongoDatabase;
+
 import org.jongo.Jongo;
 import com.github.mongobee.changeset.ChangeSet;
 
@@ -36,6 +38,13 @@ public class MongobeeTestResource {
   public void testChangeSet4(Jongo jongo){
 
       System.out.println("invoked 4 with jongo=" + jongo.toString());
+
+  }
+
+  @ChangeSet(author = "testuser", id = "test5", order = "05")
+  public void testChangeSet5(MongoDatabase mongoDatabase){
+
+    System.out.println("invoked 5 with db=" + mongoDatabase.toString());
 
   }
 }
