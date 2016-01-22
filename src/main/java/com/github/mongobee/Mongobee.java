@@ -8,7 +8,10 @@ import com.github.mongobee.exception.MongobeeException;
 import com.github.mongobee.utils.ChangeService;
 import com.mongodb.DB;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
+
 import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +39,7 @@ public class Mongobee implements InitializingBean {
   private boolean enabled = true;
   private String changeLogsScanPackage;
   private MongoClientURI mongoClientURI;
-  private Mongo mongo;
+  private MongoClient mongo;
   private String dbName;
   private Environment springEnvironment;
   
@@ -74,7 +77,7 @@ public class Mongobee implements InitializingBean {
    * @param mongo database connection
    * @see Mongo
    */
-  public Mongobee(Mongo mongo) {
+  public Mongobee(MongoClient mongo) {
     this.mongo = mongo;
     this.dao = new ChangeEntryDao();
   }
@@ -154,11 +157,11 @@ public class Mongobee implements InitializingBean {
 
           try {
             if (dao.isNewChange(changeEntry)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
+              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
               dao.save(changeEntry);
               logger.info(changeEntry + " applied");
             } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
+              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
               logger.info(changeEntry + " reapplied");
             } else {
               logger.info(changeEntry + " passed over");
@@ -182,7 +185,7 @@ public class Mongobee implements InitializingBean {
     logger.info("Mongobee has finished his job.");
   }
 
-  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db)
+  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db, MongoDatabase mongoDatabase)
       throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
     if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
@@ -203,6 +206,11 @@ public class Mongobee implements InitializingBean {
       logger.debug("method with no params");
 
       return changeSetMethod.invoke(changeLogInstance);
+    } else if (changeSetMethod.getParameterTypes().length == 1
+            && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
+        logger.debug("method with DB argument");
+
+        return changeSetMethod.invoke(changeLogInstance, mongoDatabase);
     } else {
       throw new MongobeeChangeSetException("ChangeSet method " + changeSetMethod.getName() +
           " has wrong arguments list. Please see docs for more info!");

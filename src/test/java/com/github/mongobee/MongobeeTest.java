@@ -29,11 +29,9 @@ import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeException;
 import com.github.mongobee.test.changelogs.MongobeeTestResource;
 import com.mongodb.BasicDBObject;
-import com.mongodb.CommandResult;
 import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoClientURI;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoDatabase;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeTest {
@@ -45,13 +43,16 @@ public class MongobeeTest {
   private ChangeEntryDao dao;
 
   private DB fakeDb;
+  private MongoDatabase fakeMongoDatabase;
 
   @Before
   public void init() throws MongobeeException, UnknownHostException {
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
+    fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
         .thenReturn(fakeDb);
     when(dao.getDb()).thenReturn(fakeDb);
+    when(dao.getMongoDatabase()).thenReturn(fakeMongoDatabase);
     when(dao.save(any(ChangeEntry.class))).thenCallRealMethod();
 
     runner.setDbName("mongobeetest");
@@ -77,7 +78,7 @@ public class MongobeeTest {
     runner.execute();
 
     // then
-    verify(dao, times(10)).save(any(ChangeEntry.class)); // 10 changesets saved to dbchangelog
+    verify(dao, times(12)).save(any(ChangeEntry.class)); // 12 changesets saved to dbchangelog
 
     // dbchangelog collection checking
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
@@ -96,9 +97,13 @@ public class MongobeeTest {
         .append(ChangeEntry.KEY_CHANGEID, "test4")
         .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change4);
+    int change5 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
+            .append(ChangeEntry.KEY_CHANGEID, "test5")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+    assertEquals(1, change5);
     int changeAll = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
         .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
-    assertEquals(9, changeAll);
+    assertEquals(11, changeAll);
   }
 
   @Test
