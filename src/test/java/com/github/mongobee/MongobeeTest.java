@@ -187,7 +187,27 @@ public class MongobeeTest {
 	  assertTrue(inProgress);
   }
   
-  
+  @SuppressWarnings("unchecked")
+  @Test
+  public void shouldReleaseLockWhenExceptionInMigration() throws Exception {
+
+      // given
+      // would be nicer with a mock for the whole execution, but this would mean breaking out to separate class..
+      // this should be "good enough"
+      when (dao.acquireProcessLock()).thenReturn(true);
+      when (dao.isNewChange(any(ChangeEntry.class))).thenThrow(RuntimeException.class);
+
+      // when
+      // have to catch the exception to be able to verify after
+      try {
+        runner.execute();
+      } catch (Exception e){
+        // do nothing
+      }
+      // then
+      verify(dao).releaseProcessLock();
+
+  }
   
   @After
   public void cleanUp() {

@@ -147,11 +147,13 @@ public class Mongobee implements InitializingBean {
     
   	logger.info("Mongobee aqcuired process lock, starting the data migration sequence.."); 
     
-    executeMigration();
-    
-    logger.info("Mongobee is releasing process lock.");
-    dao.releaseProcessLock();
-    
+  	try{
+      executeMigration();
+  	} finally {
+      logger.info("Mongobee is releasing process lock.");
+      dao.releaseProcessLock();
+  	}
+  	
     logger.info("Mongobee has finished his job.");
   }
 
