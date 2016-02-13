@@ -297,5 +297,12 @@ public class Mongobee implements InitializingBean {
     this.jongo = jongo;
     return this;
   }
-  
+
+  /**
+   * Closes the Mongo instance used by Mongobee.
+   * This will close either the connection Mongobee was initiated with or that which was internally created.
+   */
+  public void close() {
+     dao.close();
+  }
 }
