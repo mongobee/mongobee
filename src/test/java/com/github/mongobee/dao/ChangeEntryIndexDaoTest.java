@@ -1,15 +1,5 @@
 package com.github.mongobee.dao;
 
-import com.github.fakemongo.Fongo;
-import com.github.mongobee.changeset.ChangeEntry;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -17,6 +7,17 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import com.github.fakemongo.Fongo;
+import com.github.mongobee.changeset.ChangeEntry;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.Mongo;
 
 /**
  * @author lstolowski
@@ -69,7 +70,6 @@ public class ChangeEntryIndexDaoTest {
     // then
     assertNull(findIndex(db, CHANGEID_AUTHOR_INDEX_NAME));
   }
-
 
   private DBObject findIndex(DB db, String indexName) {
     for (DBObject index : db.getCollection(CHANGELOG_COLLECTION).getIndexInfo()) {

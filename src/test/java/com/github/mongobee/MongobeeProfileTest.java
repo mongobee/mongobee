@@ -1,5 +1,18 @@
 package com.github.mongobee;
 
+import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import com.github.fakemongo.Fongo;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
@@ -10,18 +23,6 @@ import com.github.mongobee.test.profiles.dev.ProfiledDevChangeLog;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for Spring profiles integration
@@ -46,7 +47,7 @@ public class MongobeeProfileTest {
 
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
-      .thenReturn(fakeDb);
+        .thenReturn(fakeDb);
     when(dao.getDb()).thenReturn(fakeDb);
     when(dao.acquireProcessLock()).thenReturn(true);
     when(dao.save(any(ChangeEntry.class))).thenCallRealMethod();
@@ -67,19 +68,19 @@ public class MongobeeProfileTest {
 
     // then
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-          .find(new BasicDBObject()
+        .find(new BasicDBObject()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
             .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change1);  //  no-@Profile  should not match
 
     int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-          .find(new BasicDBObject()
+        .find(new BasicDBObject()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
             .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change2);  //  @Profile("dev")  should not match
 
     int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-          .find(new BasicDBObject()
+        .find(new BasicDBObject()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
             .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(0, change3);  //  @Profile("default")  should not match
@@ -97,27 +98,27 @@ public class MongobeeProfileTest {
 
     // then
     int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-      .find(new BasicDBObject()
-        .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .find(new BasicDBObject()
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change1);
 
     int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-      .find(new BasicDBObject()
-        .append(ChangeEntry.KEY_CHANGEID, "Pdev2")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .find(new BasicDBObject()
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev2")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change2);
 
     int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-      .find(new BasicDBObject()
-        .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .find(new BasicDBObject()
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(1, change3);  //  @Profile("dev")  should not match
 
     int change4 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-      .find(new BasicDBObject()
-        .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .find(new BasicDBObject()
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
     assertEquals(0, change4);  //  @Profile("default")  should not match
   }
 

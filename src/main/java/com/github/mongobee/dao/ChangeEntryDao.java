@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -26,10 +25,10 @@ import com.mongodb.WriteResult;
  */
 public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
-  
+
   private DB db;
   private ChangeEntryIndexDao indexDao = new ChangeEntryIndexDao();
-  
+
   private LockDao lockDao = new LockDao();
 
   public DB getDb() {
@@ -47,7 +46,6 @@ public class ChangeEntryDao {
     }
   }
 
-
   public DB connectMongoDb(MongoClientURI mongoClientURI, String dbName)
       throws MongobeeConfigurationException, MongobeeConnectionException {
     try {
@@ -59,25 +57,25 @@ public class ChangeEntryDao {
     }
 
   }
-  
+
   /**
    * Try to acquire process lock
+   *
    * @return true if successfully acquired, false otherwise
    */
-  public boolean acquireProcessLock() throws MongobeeConnectionException{
-	verifyDbConnection();
-	return lockDao.acquireLock(getDb());
+  public boolean acquireProcessLock() throws MongobeeConnectionException {
+    verifyDbConnection();
+    return lockDao.acquireLock(getDb());
   }
-  
- 
-  public void releaseProcessLock() throws MongobeeConnectionException{
-	verifyDbConnection();
-	lockDao.releaseLock(getDb());
+
+  public void releaseProcessLock() throws MongobeeConnectionException {
+    verifyDbConnection();
+    lockDao.releaseLock(getDb());
   }
-  
-  public boolean isProccessLockHeld() throws MongobeeConnectionException{
-	verifyDbConnection();  
-	return lockDao.isLockHeld(getDb()); 
+
+  public boolean isProccessLockHeld() throws MongobeeConnectionException {
+    verifyDbConnection();
+    return lockDao.isLockHeld(getDb());
   }
 
   public boolean isNewChange(ChangeEntry changeEntry) throws MongobeeConnectionException {
@@ -115,11 +113,10 @@ public class ChangeEntryDao {
     }
 
   }
-  
-  private void initializeLock() {
-		lockDao.intitializeLock(db);
-  }
 
+  private void initializeLock() {
+    lockDao.intitializeLock(db);
+  }
 
   /* Visible for testing */
   void setIndexDao(ChangeEntryIndexDao changeEntryIndexDao) {
@@ -128,8 +125,7 @@ public class ChangeEntryDao {
 
   /* Visible for testing */
   void setLockDao(LockDao lockDao) {
-	this.lockDao = lockDao;
+    this.lockDao = lockDao;
   }
-   
 
 }

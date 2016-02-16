@@ -1,12 +1,12 @@
 package com.github.mongobee.dao;
 
+import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
+
 import com.github.mongobee.changeset.ChangeEntry;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 
 /**
  * @author lstolowski
@@ -24,8 +24,8 @@ public class ChangeEntryIndexDao {
   public DBObject findRequiredChangeAndAuthorIndex(DB db) {
     DBCollection indexes = db.getCollection("system.indexes");
     DBObject index = indexes.findOne(new BasicDBObject()
-            .append("ns", db.getName() + "." + CHANGELOG_COLLECTION)
-            .append("key", new BasicDBObject().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
+        .append("ns", db.getName() + "." + CHANGELOG_COLLECTION)
+        .append("key", new BasicDBObject().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
     );
 
     return index;
@@ -40,7 +40,7 @@ public class ChangeEntryIndexDao {
     }
   }
 
-  public void dropIndex(DBCollection collection, DBObject index){
+  public void dropIndex(DBCollection collection, DBObject index) {
     collection.dropIndex(index.get("name").toString());
   }
 

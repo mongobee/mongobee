@@ -40,7 +40,7 @@ public class Mongobee implements InitializingBean {
   private Mongo mongo;
   private String dbName;
   private Environment springEnvironment;
-  
+
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
 
@@ -97,10 +97,10 @@ public class Mongobee implements InitializingBean {
    * {@code username:password@} syntax is used. If not specified the "admin" database will be used by default.
    * <b>Mongobee will operate on the database provided here or on the database overriden by setter setDbName(String).</b>
    * </li>
-   *
+   * <p/>
    * <li>{@code ?options} are connection options. For list of options please see com.mongodb.MongoClientURI docs</li>
    * </ul>
-   *
+   * <p/>
    * <p>For details, please see com.mongodb.MongoClientURI
    *
    * @param mongoURI with correct format
@@ -139,65 +139,65 @@ public class Mongobee implements InitializingBean {
     } else {
       dao.connectMongoDb(this.mongoClientURI, dbName);
     }
-    
-    if (!dao.acquireProcessLock()){
-    	logger.info("Mongobee did not aqcuire process lock. Exiting.");
-    	return;
-    } 
-    
-  	logger.info("Mongobee aqcuired process lock, starting the data migration sequence.."); 
-    
-  	try{
+
+    if (!dao.acquireProcessLock()) {
+      logger.info("Mongobee did not aqcuire process lock. Exiting.");
+      return;
+    }
+
+    logger.info("Mongobee aqcuired process lock, starting the data migration sequence..");
+
+    try {
       executeMigration();
-  	} finally {
+    } finally {
       logger.info("Mongobee is releasing process lock.");
       dao.releaseProcessLock();
-  	}
-  	
+    }
+
     logger.info("Mongobee has finished his job.");
   }
 
   private void executeMigration() throws MongobeeConnectionException, MongobeeException {
-	  
-	  ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
-      for (Class<?> changelogClass : service.fetchChangeLogs()) {
+    ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
-        Object changelogInstance = null;
-        try {
-          changelogInstance = changelogClass.getConstructor().newInstance();
-          List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
+    for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
-          for (Method changesetMethod : changesetMethods) {
-            ChangeEntry changeEntry = service.createChangeEntry(changesetMethod);
+      Object changelogInstance = null;
+      try {
+        changelogInstance = changelogClass.getConstructor().newInstance();
+        List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
 
-            try {
-              if (dao.isNewChange(changeEntry)) {
-                executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
-                dao.save(changeEntry);
-                logger.info(changeEntry + " applied");
-              } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
-                executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
-                logger.info(changeEntry + " reapplied");
-              } else {
-                logger.info(changeEntry + " passed over");
-              }
-            } catch (MongobeeChangeSetException e) {
-              logger.error(e.getMessage());
+        for (Method changesetMethod : changesetMethods) {
+          ChangeEntry changeEntry = service.createChangeEntry(changesetMethod);
+
+          try {
+            if (dao.isNewChange(changeEntry)) {
+              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
+              dao.save(changeEntry);
+              logger.info(changeEntry + " applied");
+            } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
+              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
+              logger.info(changeEntry + " reapplied");
+            } else {
+              logger.info(changeEntry + " passed over");
             }
+          } catch (MongobeeChangeSetException e) {
+            logger.error(e.getMessage());
           }
-        } catch (NoSuchMethodException e) {
-          throw new MongobeeException(e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-          throw new MongobeeException(e.getMessage(), e);
-        } catch (InvocationTargetException e) {
-          Throwable targetException = e.getTargetException();
-          throw new MongobeeException(targetException.getMessage(), e);
-        } catch (InstantiationException e) {
-          throw new MongobeeException(e.getMessage(), e);
         }
-
+      } catch (NoSuchMethodException e) {
+        throw new MongobeeException(e.getMessage(), e);
+      } catch (IllegalAccessException e) {
+        throw new MongobeeException(e.getMessage(), e);
+      } catch (InvocationTargetException e) {
+        Throwable targetException = e.getTargetException();
+        throw new MongobeeException(targetException.getMessage(), e);
+      } catch (InstantiationException e) {
+        throw new MongobeeException(e.getMessage(), e);
       }
+
+    }
   }
 
   private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db)
@@ -238,13 +238,12 @@ public class Mongobee implements InitializingBean {
 
   /**
    * @return true if an execution is in progress, in any process.
-   * @throws MongobeeConnectionException 
-   * 
+   * @throws MongobeeConnectionException
    */
-  public boolean isExecutionInProgress() throws MongobeeConnectionException{
-	 return dao.isProccessLockHeld(); 
+  public boolean isExecutionInProgress() throws MongobeeConnectionException {
+    return dao.isProccessLockHeld();
   }
-  
+
   /**
    * Used DB name should be set here or via MongoDB URI (in a constructor)
    *
@@ -306,8 +305,10 @@ public class Mongobee implements InitializingBean {
     this.springEnvironment = environment;
     return this;
   }
+
   /**
-   * Sets pre-configured {@link MongoTemplate} instance to use by the Mongobee 
+   * Sets pre-configured {@link MongoTemplate} instance to use by the Mongobee
+   *
    * @param mongoTemplate instance of the {@link MongoTemplate}
    * @return Mongobee object for fluent interface
    */
@@ -315,14 +316,16 @@ public class Mongobee implements InitializingBean {
     this.mongoTemplate = mongoTemplate;
     return this;
   }
+
   /**
-   * Sets pre-configured {@link MongoTemplate} instance to use by the Mongobee 
-   * @param jongo {@link Jongo} instance  
+   * Sets pre-configured {@link MongoTemplate} instance to use by the Mongobee
+   *
+   * @param jongo {@link Jongo} instance
    * @return Mongobee object for fluent interface
    */
   public Mongobee setJongo(Jongo jongo) {
     this.jongo = jongo;
     return this;
   }
-  
+
 }
