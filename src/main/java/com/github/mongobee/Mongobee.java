@@ -4,6 +4,7 @@ import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.exception.MongobeeConnectionException;
 import com.github.mongobee.exception.MongobeeException;
 import com.github.mongobee.utils.ChangeService;
 import com.mongodb.DB;
@@ -133,53 +134,70 @@ public class Mongobee implements InitializingBean {
 
     validateConfig();
 
-    logger.info("Mongobee has started the data migration sequence..");
     if (this.mongo != null) {
       dao.connectMongoDb(this.mongo, dbName);
     } else {
       dao.connectMongoDb(this.mongoClientURI, dbName);
     }
-
-    ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
-
-    for (Class<?> changelogClass : service.fetchChangeLogs()) {
-
-      Object changelogInstance = null;
-      try {
-        changelogInstance = changelogClass.getConstructor().newInstance();
-        List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
-
-        for (Method changesetMethod : changesetMethods) {
-          ChangeEntry changeEntry = service.createChangeEntry(changesetMethod);
-
-          try {
-            if (dao.isNewChange(changeEntry)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
-              dao.save(changeEntry);
-              logger.info(changeEntry + " applied");
-            } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
-              logger.info(changeEntry + " reapplied");
-            } else {
-              logger.info(changeEntry + " passed over");
-            }
-          } catch (MongobeeChangeSetException e) {
-            logger.error(e.getMessage());
-          }
-        }
-      } catch (NoSuchMethodException e) {
-        throw new MongobeeException(e.getMessage(), e);
-      } catch (IllegalAccessException e) {
-        throw new MongobeeException(e.getMessage(), e);
-      } catch (InvocationTargetException e) {
-        Throwable targetException = e.getTargetException();
-        throw new MongobeeException(targetException.getMessage(), e);
-      } catch (InstantiationException e) {
-        throw new MongobeeException(e.getMessage(), e);
-      }
-
-    }
+    
+    if (!dao.acquireProcessLock()){
+    	logger.info("Mongobee did not aqcuire process lock. Exiting.");
+    	return;
+    } 
+    
+  	logger.info("Mongobee aqcuired process lock, starting the data migration sequence.."); 
+    
+  	try{
+      executeMigration();
+  	} finally {
+      logger.info("Mongobee is releasing process lock.");
+      dao.releaseProcessLock();
+  	}
+  	
     logger.info("Mongobee has finished his job.");
+  }
+
+  private void executeMigration() throws MongobeeConnectionException, MongobeeException {
+	  
+	  ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
+
+      for (Class<?> changelogClass : service.fetchChangeLogs()) {
+
+        Object changelogInstance = null;
+        try {
+          changelogInstance = changelogClass.getConstructor().newInstance();
+          List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
+
+          for (Method changesetMethod : changesetMethods) {
+            ChangeEntry changeEntry = service.createChangeEntry(changesetMethod);
+
+            try {
+              if (dao.isNewChange(changeEntry)) {
+                executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
+                dao.save(changeEntry);
+                logger.info(changeEntry + " applied");
+              } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
+                executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb());
+                logger.info(changeEntry + " reapplied");
+              } else {
+                logger.info(changeEntry + " passed over");
+              }
+            } catch (MongobeeChangeSetException e) {
+              logger.error(e.getMessage());
+            }
+          }
+        } catch (NoSuchMethodException e) {
+          throw new MongobeeException(e.getMessage(), e);
+        } catch (IllegalAccessException e) {
+          throw new MongobeeException(e.getMessage(), e);
+        } catch (InvocationTargetException e) {
+          Throwable targetException = e.getTargetException();
+          throw new MongobeeException(targetException.getMessage(), e);
+        } catch (InstantiationException e) {
+          throw new MongobeeException(e.getMessage(), e);
+        }
+
+      }
   }
 
   private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db)
@@ -218,6 +236,15 @@ public class Mongobee implements InitializingBean {
     }
   }
 
+  /**
+   * @return true if an execution is in progress, in any process.
+   * @throws MongobeeConnectionException 
+   * 
+   */
+  public boolean isExecutionInProgress() throws MongobeeConnectionException{
+	 return dao.isProccessLockHeld(); 
+  }
+  
   /**
    * Used DB name should be set here or via MongoDB URI (in a constructor)
    *
