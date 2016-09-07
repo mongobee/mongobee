@@ -27,6 +27,7 @@ public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
 
   private DB db;
+  private Mongo mongo;
   private ChangeEntryIndexDao indexDao = new ChangeEntryIndexDao();
 
   private LockDao lockDao = new LockDao();
@@ -39,6 +40,7 @@ public class ChangeEntryDao {
     if (!hasText(dbName)) {
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     } else {
+      this.mongo = mongo;
       db = mongo.getDB(dbName);
       ensureChangeLogCollectionIndex(db.getCollection(CHANGELOG_COLLECTION));
       initializeLock();
@@ -112,6 +114,10 @@ public class ChangeEntryDao {
       logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was recreated");
     }
 
+  }
+
+  public void close() {
+      this.mongo.close();
   }
 
   private void initializeLock() {
