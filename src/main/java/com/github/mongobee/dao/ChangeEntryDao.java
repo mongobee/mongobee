@@ -18,6 +18,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.WriteResult;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * @author lstolowski
@@ -27,6 +28,7 @@ public class ChangeEntryDao {
   private static final Logger logger = LoggerFactory.getLogger("Mongobee dao");
 
   private DB db;
+  private MongoDatabase mongoDatabase;
   private Mongo mongo;
   private ChangeEntryIndexDao indexDao = new ChangeEntryIndexDao();
 
@@ -36,12 +38,20 @@ public class ChangeEntryDao {
     return db;
   }
 
-  public DB connectMongoDb(Mongo mongo, String dbName) throws MongobeeConfigurationException {
+  public MongoDatabase getMongoDatabase() {
+    return mongoDatabase;
+  }
+
+  public DB connectMongoDb(MongoClient mongo, String dbName) throws MongobeeConfigurationException {
     if (!hasText(dbName)) {
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     } else {
       this.mongo = mongo;
-      db = mongo.getDB(dbName);
+
+
+      db = mongo.getDB(dbName);  // FIXME
+
+      mongoDatabase = mongo.getDatabase(dbName);
       ensureChangeLogCollectionIndex(db.getCollection(CHANGELOG_COLLECTION));
       initializeLock();
       return db;
@@ -50,14 +60,10 @@ public class ChangeEntryDao {
 
   public DB connectMongoDb(MongoClientURI mongoClientURI, String dbName)
       throws MongobeeConfigurationException, MongobeeConnectionException {
-    try {
-      final Mongo mongoClient = new MongoClient(mongoClientURI);
-      final String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
-      return this.connectMongoDb(mongoClient, database);
-    } catch (UnknownHostException e) {
-      throw new MongobeeConnectionException(e.getMessage(), e);
-    }
 
+    final MongoClient mongoClient = new MongoClient(mongoClientURI);
+    final String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
+    return this.connectMongoDb(mongoClient, database);
   }
 
   /**

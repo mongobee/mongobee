@@ -4,6 +4,7 @@ import com.github.mongobee.changeset.ChangeLog;
 import com.mongodb.DB;
 import org.jongo.Jongo;
 import com.github.mongobee.changeset.ChangeSet;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * @author lstolowski
@@ -35,4 +36,10 @@ public class AnotherMongobeeTestResource {
   public void testChangeSetWithAlways(Jongo jongo){
     System.out.println("invoked B5 with always + jongo=" + jongo.getDatabase());
   }
+
+  @ChangeSet(author = "testuser", id = "Btest6", order = "06")
+  public void testChangeSet6(MongoDatabase mongoDatabase) {
+    System.out.println("invoked B6 with db=" + mongoDatabase.toString());
+  }
+
 }

@@ -23,6 +23,7 @@ import com.github.mongobee.test.profiles.dev.ProfiledDevChangeLog;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * Tests for Spring profiles integration
@@ -33,7 +34,7 @@ import com.mongodb.MongoClientURI;
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeProfileTest {
 
-  public static final int CHANGELOG_COUNT = 10;
+  public static final int CHANGELOG_COUNT = 12;
   @InjectMocks
   private Mongobee runner = new Mongobee();
 
@@ -42,13 +43,17 @@ public class MongobeeProfileTest {
 
   private DB fakeDb;
 
+  private MongoDatabase fakeMongoDatabase;
+
   @Before
   public void init() throws Exception {
 
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
+    fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
         .thenReturn(fakeDb);
     when(dao.getDb()).thenReturn(fakeDb);
+    when(dao.getMongoDatabase()).thenReturn(fakeMongoDatabase);
     when(dao.acquireProcessLock()).thenReturn(true);
     when(dao.save(any(ChangeEntry.class))).thenCallRealMethod();
 
