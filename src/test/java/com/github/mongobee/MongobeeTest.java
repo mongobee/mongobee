@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.when;
 import java.net.UnknownHostException;
 import java.util.Collections;
 
+import org.bson.Document;
 import org.jongo.Jongo;
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +33,6 @@ import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeException;
 import com.github.mongobee.test.changelogs.MongobeeTestResource;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
@@ -53,10 +54,10 @@ public class MongobeeTest {
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
     fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
-        .thenReturn(fakeDb);
+        .thenReturn(fakeMongoDatabase);
     when(dao.getDb()).thenReturn(fakeDb);
     when(dao.getMongoDatabase()).thenReturn(fakeMongoDatabase);
-    when(dao.save(any(ChangeEntry.class))).thenCallRealMethod();
+    doCallRealMethod().when(dao).save(any(ChangeEntry.class));
 
     runner.setDbName("mongobeetest");
     runner.setEnabled(true);
@@ -84,29 +85,29 @@ public class MongobeeTest {
     verify(dao, times(12)).save(any(ChangeEntry.class)); // 12 changesets saved to dbchangelog
 
     // dbchangelog collection checking
-    int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
+    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document()
         .append(ChangeEntry.KEY_CHANGEID, "test1")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change1);
-    int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
+    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document()
         .append(ChangeEntry.KEY_CHANGEID, "test2")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change2);
-    int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
+    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document()
         .append(ChangeEntry.KEY_CHANGEID, "test3")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change3);
-    int change4 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
+    long change4 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document()
         .append(ChangeEntry.KEY_CHANGEID, "test4")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change4);
-    int change5 = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
+    long change5 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document()
         .append(ChangeEntry.KEY_CHANGEID, "test5")
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change5);
 
-    int changeAll = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()
-        .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+    long changeAll = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document()
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(11, changeAll);
   }
 

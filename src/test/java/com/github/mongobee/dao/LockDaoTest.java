@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import com.github.fakemongo.Fongo;
 import com.mongodb.DB;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * @author colsson11
@@ -21,7 +22,7 @@ public class LockDaoTest {
   public void shouldGetLockWhenNotPreviouslyHeld() throws Exception {
 
     // given
-    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
+    MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     LockDao dao = new LockDao();
     dao.intitializeLock(db);
 
@@ -37,7 +38,7 @@ public class LockDaoTest {
   public void shouldNotGetLockWhenPreviouslyHeld() throws Exception {
 
     // given
-    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
+    MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     LockDao dao = new LockDao();
     dao.intitializeLock(db);
 
@@ -53,7 +54,7 @@ public class LockDaoTest {
   public void shouldGetLockWhenPreviouslyHeldAndReleased() throws Exception {
 
     // given
-    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
+    MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     LockDao dao = new LockDao();
     dao.intitializeLock(db);
 
@@ -69,7 +70,7 @@ public class LockDaoTest {
   @Test
   public void releaseLockShouldBeIdempotent() {
     // given
-    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
+    MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     LockDao dao = new LockDao();
     dao.intitializeLock(db);
 
@@ -85,7 +86,7 @@ public class LockDaoTest {
   @Test
   public void whenLockNotHeldCheckReturnsFalse() {
 
-    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
+    MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     LockDao dao = new LockDao();
     dao.intitializeLock(db);
 
@@ -96,7 +97,7 @@ public class LockDaoTest {
   @Test
   public void whenLockHeldCheckReturnsTrue() {
 
-    DB db = new Fongo(TEST_SERVER).getDB(DB_NAME);
+    MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     LockDao dao = new LockDao();
     dao.intitializeLock(db);
 

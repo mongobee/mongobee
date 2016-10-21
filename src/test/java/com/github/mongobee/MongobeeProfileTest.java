@@ -4,8 +4,10 @@ import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.when;
 
+import org.bson.Document;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +22,6 @@ import com.github.mongobee.resources.EnvironmentMock;
 import com.github.mongobee.test.changelogs.AnotherMongobeeTestResource;
 import com.github.mongobee.test.profiles.def.UnProfiledChangeLog;
 import com.github.mongobee.test.profiles.dev.ProfiledDevChangeLog;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
@@ -51,11 +52,11 @@ public class MongobeeProfileTest {
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
     fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
-        .thenReturn(fakeDb);
+        .thenReturn(fakeMongoDatabase);
     when(dao.getDb()).thenReturn(fakeDb);
     when(dao.getMongoDatabase()).thenReturn(fakeMongoDatabase);
     when(dao.acquireProcessLock()).thenReturn(true);
-    when(dao.save(any(ChangeEntry.class))).thenCallRealMethod();
+    doCallRealMethod().when(dao).save(any(ChangeEntry.class));
 
     runner.setDbName("mongobeetest");
     runner.setEnabled(true);
@@ -72,22 +73,22 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-        .find(new BasicDBObject()
+    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+        .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
-            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change1);  //  no-@Profile  should not match
 
-    int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-        .find(new BasicDBObject()
+    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+        .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
-            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change2);  //  @Profile("dev")  should not match
 
-    int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-        .find(new BasicDBObject()
+    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+        .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
-            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(0, change3);  //  @Profile("default")  should not match
   }
 
@@ -102,28 +103,28 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    int change1 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-        .find(new BasicDBObject()
+    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+        .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
-            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change1);
 
-    int change2 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-        .find(new BasicDBObject()
+    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+        .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev2")
-            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change2);
 
-    int change3 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-        .find(new BasicDBObject()
+    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+        .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
-            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change3);  //  @Profile("dev")  should not match
 
-    int change4 = fakeDb.getCollection(CHANGELOG_COLLECTION)
-        .find(new BasicDBObject()
+    long change4 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+        .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
-            .append(ChangeEntry.KEY_AUTHOR, "testuser")).count();
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(0, change4);  //  @Profile("default")  should not match
   }
 
@@ -138,7 +139,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    int changes = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()).count();
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
     assertEquals(0, changes);
   }
 
@@ -153,7 +154,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    int changes = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()).count();
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
     assertEquals(CHANGELOG_COUNT, changes);
   }
 
@@ -168,7 +169,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    int changes = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()).count();
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
     assertEquals(CHANGELOG_COUNT, changes);
   }
 
@@ -183,7 +184,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    int changes = fakeDb.getCollection(CHANGELOG_COLLECTION).find(new BasicDBObject()).count();
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
     assertEquals(CHANGELOG_COUNT, changes);
   }
 

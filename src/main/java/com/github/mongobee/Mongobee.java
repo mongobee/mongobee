@@ -72,8 +72,8 @@ public class Mongobee implements InitializingBean {
   }
 
   /**
-   * <p>Constructor takes db.mongodb.Mongo object as a parameter.
-   * </p><p>For more details about <tt>Mongo</tt> please see com.mongodb.Mongo docs
+   * <p>Constructor takes db.mongodb.MongoClient object as a parameter.
+   * </p><p>For more details about <tt>MongoClient</tt> please see com.mongodb.MongoClient docs
    * </p>
    *
    * @param mongoClient database connection client

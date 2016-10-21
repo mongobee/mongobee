@@ -1,13 +1,13 @@
 package com.github.mongobee.changeset;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-
 import java.util.Date;
+
+import org.bson.Document;
 
 /**
  * Entry in the changes collection log {@link ChangeEntry#CHANGELOG_COLLECTION}
  * Type: entity class.
+ *
  * @author lstolowski
  * @since 27/07/2014
  */
@@ -34,30 +34,30 @@ public class ChangeEntry {
     this.changeSetMethodName = changeSetMethodName;
   }
 
-  public DBObject buildFullDBObject(){
-    BasicDBObject entry = new BasicDBObject();
-    
+  public Document buildFullDBObject() {
+    Document entry = new Document();
+
     entry.append(KEY_CHANGEID, this.changeId)
-            .append(KEY_AUTHOR, this.author)
-            .append(KEY_TIMESTAMP, this.timestamp)
-            .append(KEY_CHANGELOGCLASS, this.changeLogClass)
-            .append(KEY_CHANGESETMETHOD, this.changeSetMethodName);
-    
+        .append(KEY_AUTHOR, this.author)
+        .append(KEY_TIMESTAMP, this.timestamp)
+        .append(KEY_CHANGELOGCLASS, this.changeLogClass)
+        .append(KEY_CHANGESETMETHOD, this.changeSetMethodName);
+
     return entry;
   }
-  
-  public DBObject buildSearchQueryDBObject(){
-    return new BasicDBObject()
-                  .append(KEY_CHANGEID, this.changeId)
-                  .append(KEY_AUTHOR, this.author);
+
+  public Document buildSearchQueryDBObject() {
+    return new Document()
+        .append(KEY_CHANGEID, this.changeId)
+        .append(KEY_AUTHOR, this.author);
   }
 
   @Override
   public String toString() {
     return "[ChangeSet: id=" + this.changeId +
-            ", author=" + this.author +
-            ", changeLogClass=" + this.changeLogClass +
-            ", changeSetMethod=" + this.changeSetMethodName + "]";
+        ", author=" + this.author +
+        ", changeLogClass=" + this.changeLogClass +
+        ", changeSetMethod=" + this.changeSetMethodName + "]";
   }
 
   public String getChangeId() {

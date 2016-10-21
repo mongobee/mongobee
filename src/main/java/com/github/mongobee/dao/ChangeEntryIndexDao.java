@@ -2,11 +2,13 @@ package com.github.mongobee.dao;
 
 import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 
+import org.bson.Document;
+
 import com.github.mongobee.changeset.ChangeEntry;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 
 /**
  * @author lstolowski
@@ -14,24 +16,25 @@ import com.mongodb.DBObject;
  */
 public class ChangeEntryIndexDao {
 
-  public void createRequiredUniqueIndex(DBCollection collection) {
-    collection.createIndex(new BasicDBObject()
+  public void createRequiredUniqueIndex(MongoCollection<Document> collection) {
+    collection.createIndex(new Document()
             .append(ChangeEntry.KEY_CHANGEID, 1)
             .append(ChangeEntry.KEY_AUTHOR, 1),
-        new BasicDBObject().append("unique", true));
+        new IndexOptions().unique(true)
+    );
   }
 
-  public DBObject findRequiredChangeAndAuthorIndex(DB db) {
-    DBCollection indexes = db.getCollection("system.indexes");
-    DBObject index = indexes.findOne(new BasicDBObject()
+  public Document findRequiredChangeAndAuthorIndex(MongoDatabase db) {
+    MongoCollection<Document> indexes = db.getCollection("system.indexes");
+    Document index = indexes.find(new Document()
         .append("ns", db.getName() + "." + CHANGELOG_COLLECTION)
-        .append("key", new BasicDBObject().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
-    );
+        .append("key", new Document().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
+    ).first();
 
     return index;
   }
 
-  public boolean isUnique(DBObject index) {
+  public boolean isUnique(Document index) {
     Object unique = index.get("unique");
     if (unique != null && unique instanceof Boolean) {
       return (Boolean) unique;
@@ -40,7 +43,11 @@ public class ChangeEntryIndexDao {
     }
   }
 
-  public void dropIndex(DBCollection collection, DBObject index) {
+  public void dropIndex(MongoCollection<Document> collection, Document index) {
+    collection.dropIndex(index.get("name").toString());
+  }
+
+  public void dropIndex(DBCollection collection, Document index) {
     collection.dropIndex(index.get("name").toString());
   }
 
