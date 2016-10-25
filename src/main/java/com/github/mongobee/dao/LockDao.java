@@ -58,7 +58,7 @@ public class LockDao {
   /**
    * Check if the lock is held. Could be used by external process for example.
    *
-   * @param db
+   * @param db MongoDatabase object
    * @return true if the lock is currently held
    */
   public boolean isLockHeld(MongoDatabase db) {

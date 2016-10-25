@@ -47,8 +47,4 @@ public class ChangeEntryIndexDao {
     collection.dropIndex(index.get("name").toString());
   }
 
-  public void dropIndex(DBCollection collection, Document index) {
-    collection.dropIndex(index.get("name").toString());
-  }
-
 }

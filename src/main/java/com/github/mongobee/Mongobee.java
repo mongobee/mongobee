@@ -101,10 +101,8 @@ public class Mongobee implements InitializingBean {
    * {@code username:password@} syntax is used. If not specified the "admin" database will be used by default.
    * <b>Mongobee will operate on the database provided here or on the database overriden by setter setDbName(String).</b>
    * </li>
-   * <p/>
    * <li>{@code ?options} are connection options. For list of options please see com.mongodb.MongoClientURI docs</li>
    * </ul>
-   * <p/>
    * <p>For details, please see com.mongodb.MongoClientURI
    *
    * @param mongoURI with correct format
@@ -247,7 +245,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * @return true if an execution is in progress, in any process.
-   * @throws MongobeeConnectionException
+   * @throws MongobeeConnectionException exception
    */
   public boolean isExecutionInProgress() throws MongobeeConnectionException {
     return dao.isProccessLockHeld();

@@ -70,6 +70,7 @@ public class ChangeEntryDao {
    * Try to acquire process lock
    *
    * @return true if successfully acquired, false otherwise
+   * @throws MongobeeConnectionException exception
    */
   public boolean acquireProcessLock() throws MongobeeConnectionException {
     verifyDbConnection();
