@@ -3,6 +3,7 @@ package com.github.mongobee.utils;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
+import com.github.mongobee.exception.MongobeeChangeSetException;
 import org.reflections.Reflections;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
@@ -49,7 +50,7 @@ public class ChangeService {
     return filteredChangeLogs;
   }
 
-  public List<Method> fetchChangeSets(final Class<?> type) {
+  public List<Method> fetchChangeSets(final Class<?> type) throws MongobeeChangeSetException {
     final List<Method> changeSets = filterChangeSetAnnotation(asList(type.getDeclaredMethods()));
     final List<Method> filteredChangeSets = (List<Method>) filterByActiveProfiles(changeSets);
 
@@ -103,10 +104,16 @@ public class ChangeService {
     return filtered;
   }
 
-  private List<Method> filterChangeSetAnnotation(List<Method> allMethods) {
+  private List<Method> filterChangeSetAnnotation(List<Method> allMethods) throws MongobeeChangeSetException {
+    final Set<String> changeSetIds = new HashSet<>();
     final List<Method> changesetMethods = new ArrayList<>();
     for (final Method method : allMethods) {
       if (method.isAnnotationPresent(ChangeSet.class)) {
+        String id = method.getAnnotation(ChangeSet.class).id();
+        if (changeSetIds.contains(id)) {
+          throw new MongobeeChangeSetException(String.format("Duplicated changeset id found: '%s'", id));
+        }
+        changeSetIds.add(id);
         changesetMethods.add(method);
       }
     }
