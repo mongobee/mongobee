@@ -24,9 +24,20 @@ public class ChangeServiceTest {
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
     // when
-    List<Class<?>> foundClasses = service.fetchChangeLogs();
+    List<Class<?>> foundClasses = service.fetchChangeLogs(null);
     // then
     assertTrue(foundClasses != null && foundClasses.size() > 0);
+  }
+
+  @Test
+  public void shouldFindTwoChangeLogClassesWithLimit(){
+    // given
+    String scanPackage = MongobeeTestResource.class.getPackage().getName();
+    ChangeService service = new ChangeService(scanPackage);
+    // when
+    List<Class<?>> foundClasses = service.fetchChangeLogs("1");
+    // then
+    assertTrue(foundClasses != null && foundClasses.size() == 2);
   }
   
   @Test
