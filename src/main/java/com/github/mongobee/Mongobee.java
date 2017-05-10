@@ -47,6 +47,9 @@ public class Mongobee implements InitializingBean {
 
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
+  
+  private static final String DEFAULT_CHANGELOG_COLLECTION_NAME = "dbchangelog";
+  private static final String DEFAULT_LOCK_COLLECTION_NAME = "mongobeelock";
 
   /**
    * <p>Simple constructor with default configuration of host (localhost) and port (27017). Although
@@ -68,7 +71,7 @@ public class Mongobee implements InitializingBean {
   public Mongobee(MongoClientURI mongoClientURI) {
     this.mongoClientURI = mongoClientURI;
     this.setDbName(mongoClientURI.getDatabase());
-    this.dao = new ChangeEntryDao();
+    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME);
   }
 
   /**
@@ -81,7 +84,7 @@ public class Mongobee implements InitializingBean {
    */
   public Mongobee(MongoClient mongoClient) {
     this.mongoClient = mongoClient;
-    this.dao = new ChangeEntryDao();
+    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME);
   }
 
   /**
@@ -333,6 +336,16 @@ public class Mongobee implements InitializingBean {
   public Mongobee setJongo(Jongo jongo) {
     this.jongo = jongo;
     return this;
+  }
+  
+  public Mongobee setChangelogCollectionName(String changelogCollectionName) {
+	this.dao.setChangelogCollectionName(changelogCollectionName);
+	return this;
+  }
+  
+  public Mongobee setLockCollectionName(String lockCollectionName) {
+	this.dao.setLockCollectionName(lockCollectionName);
+	return this;
   }
 
   /**

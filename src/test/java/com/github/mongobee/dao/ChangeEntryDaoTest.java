@@ -1,6 +1,5 @@
 package com.github.mongobee.dao;
 
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -11,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import org.bson.Document;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import com.github.fakemongo.Fongo;
 import com.github.mongobee.exception.MongobeeConfigurationException;
@@ -26,12 +24,14 @@ import com.mongodb.client.MongoDatabase;
 public class ChangeEntryDaoTest {
   private static final String TEST_SERVER = "testServer";
   private static final String DB_NAME = "mongobeetest";
+  private static final String CHANGELOG_COLLECTION_NAME = "dbchangelog";
+  private static final String LOCK_COLLECTION_NAME = "mongobeelock";
 
   @Test
   public void shouldCreateChangeIdAuthorIndexIfNotFound() throws MongobeeConfigurationException {
 
     // given
-    ChangeEntryDao dao = new ChangeEntryDao();
+    ChangeEntryDao dao = new ChangeEntryDao(CHANGELOG_COLLECTION_NAME, LOCK_COLLECTION_NAME);
 
     MongoClient mongoClient = mock(MongoClient.class);
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
@@ -59,7 +59,7 @@ public class ChangeEntryDaoTest {
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     when(mongoClient.getDatabase(anyString())).thenReturn(db);
 
-    ChangeEntryDao dao = new ChangeEntryDao();
+    ChangeEntryDao dao = new ChangeEntryDao(CHANGELOG_COLLECTION_NAME, LOCK_COLLECTION_NAME);
     ChangeEntryIndexDao indexDaoMock = mock(ChangeEntryIndexDao.class);
     when(indexDaoMock.findRequiredChangeAndAuthorIndex(db)).thenReturn(new Document());
     when(indexDaoMock.isUnique(any(Document.class))).thenReturn(true);
@@ -69,9 +69,9 @@ public class ChangeEntryDaoTest {
     dao.connectMongoDb(mongoClient, DB_NAME);
 
     //then
-    verify(indexDaoMock, times(0)).createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION));
+    verify(indexDaoMock, times(0)).createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION_NAME));
     // and not
-    verify(indexDaoMock, times(0)).dropIndex(db.getCollection(CHANGELOG_COLLECTION), new Document());
+    verify(indexDaoMock, times(0)).dropIndex(db.getCollection(CHANGELOG_COLLECTION_NAME), new Document());
   }
 
   @Test
@@ -82,7 +82,7 @@ public class ChangeEntryDaoTest {
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     when(mongoClient.getDatabase(anyString())).thenReturn(db);
 
-    ChangeEntryDao dao = new ChangeEntryDao();
+    ChangeEntryDao dao = new ChangeEntryDao(CHANGELOG_COLLECTION_NAME, LOCK_COLLECTION_NAME);
     ChangeEntryIndexDao indexDaoMock = mock(ChangeEntryIndexDao.class);
     when(indexDaoMock.findRequiredChangeAndAuthorIndex(db)).thenReturn(new Document());
     when(indexDaoMock.isUnique(any(Document.class))).thenReturn(false);
@@ -105,7 +105,7 @@ public class ChangeEntryDaoTest {
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     when(mongoClient.getDatabase(anyString())).thenReturn(db);
 
-    ChangeEntryDao dao = new ChangeEntryDao();
+    ChangeEntryDao dao = new ChangeEntryDao(CHANGELOG_COLLECTION_NAME, LOCK_COLLECTION_NAME);
     ChangeEntryIndexDao indexDaoMock = mock(ChangeEntryIndexDao.class);
     dao.setIndexDao(indexDaoMock);
 
@@ -128,7 +128,7 @@ public class ChangeEntryDaoTest {
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     when(mongoClient.getDatabase(anyString())).thenReturn(db);
 
-    ChangeEntryDao dao = new ChangeEntryDao();
+    ChangeEntryDao dao = new ChangeEntryDao(CHANGELOG_COLLECTION_NAME, LOCK_COLLECTION_NAME);
 
     LockDao lockDao = mock(LockDao.class);
     when(lockDao.acquireLock(any(MongoDatabase.class))).thenReturn(true);
@@ -151,7 +151,7 @@ public class ChangeEntryDaoTest {
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     when(mongoClient.getDatabase(anyString())).thenReturn(db);
 
-    ChangeEntryDao dao = new ChangeEntryDao();
+    ChangeEntryDao dao = new ChangeEntryDao(CHANGELOG_COLLECTION_NAME, LOCK_COLLECTION_NAME);
 
     LockDao lockDao = mock(LockDao.class);
     dao.setLockDao(lockDao);
@@ -173,7 +173,7 @@ public class ChangeEntryDaoTest {
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     when(mongoClient.getDatabase(anyString())).thenReturn(db);
 
-    ChangeEntryDao dao = new ChangeEntryDao();
+    ChangeEntryDao dao = new ChangeEntryDao(CHANGELOG_COLLECTION_NAME, LOCK_COLLECTION_NAME);
 
     LockDao lockDao = mock(LockDao.class);
     dao.setLockDao(lockDao);

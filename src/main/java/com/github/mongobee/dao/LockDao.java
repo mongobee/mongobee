@@ -15,12 +15,16 @@ import com.mongodb.client.model.IndexOptions;
  */
 public class LockDao {
   private static final Logger logger = LoggerFactory.getLogger(LockDao.class);
-  private static final String COLLECTION = "mongobeelock";
   private static final String KEY_PROP_NAME = "key";
 
   private static final int INDEX_SORT_ASC = 1;
 
   private static final String LOCK_ENTRY_KEY_VAL = "LOCK";
+  private String lockCollectionName;
+  
+  public LockDao(String lockCollectionName) {
+	this.lockCollectionName = lockCollectionName;
+  }
 
   public void intitializeLock(MongoDatabase db) {
     createCollectionAndUniqueIndexIfNotExists(db);
@@ -30,7 +34,7 @@ public class LockDao {
     Document indexKeys = new Document(KEY_PROP_NAME, INDEX_SORT_ASC);
     IndexOptions indexOptions = new IndexOptions().unique(true).name("mongobeelock_key_idx");
 
-    db.getCollection(COLLECTION).createIndex(indexKeys, indexOptions);
+    db.getCollection(lockCollectionName).createIndex(indexKeys, indexOptions);
   }
 
   public boolean acquireLock(MongoDatabase db) {
@@ -40,7 +44,7 @@ public class LockDao {
     // acquire lock by attempting to insert the same value in the collection - if it already exists (i.e. lock held)
     // there will be an exception
     try {
-      db.getCollection(COLLECTION).insertOne(insertObj);
+      db.getCollection(lockCollectionName).insertOne(insertObj);
     } catch (MongoWriteException ex) {
       if (ex.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
         logger.warn("Duplicate key exception while acquireLock. Probably the lock has been already acquired.");
@@ -52,7 +56,7 @@ public class LockDao {
 
   public void releaseLock(MongoDatabase db) {
     // release lock by deleting collection entry
-    db.getCollection(COLLECTION).deleteMany(new Document(KEY_PROP_NAME, LOCK_ENTRY_KEY_VAL));
+    db.getCollection(lockCollectionName).deleteMany(new Document(KEY_PROP_NAME, LOCK_ENTRY_KEY_VAL));
   }
 
   /**
@@ -62,7 +66,11 @@ public class LockDao {
    * @return true if the lock is currently held
    */
   public boolean isLockHeld(MongoDatabase db) {
-    return db.getCollection(COLLECTION).count() == 1;
+    return db.getCollection(lockCollectionName).count() == 1;
+  }
+
+  public void setLockCollectionName(String lockCollectionName) {
+	this.lockCollectionName = lockCollectionName;
   }
 
 }

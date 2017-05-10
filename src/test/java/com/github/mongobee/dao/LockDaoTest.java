@@ -17,13 +17,14 @@ public class LockDaoTest {
 
   private static final String TEST_SERVER = "testServer";
   private static final String DB_NAME = "mongobeetest";
+  private static final String LOCK_COLLECTION_NAME = "mongobeelock";
 
   @Test
   public void shouldGetLockWhenNotPreviouslyHeld() throws Exception {
 
     // given
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
-    LockDao dao = new LockDao();
+    LockDao dao = new LockDao(LOCK_COLLECTION_NAME);
     dao.intitializeLock(db);
 
     // when
@@ -39,7 +40,7 @@ public class LockDaoTest {
 
     // given
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
-    LockDao dao = new LockDao();
+    LockDao dao = new LockDao(LOCK_COLLECTION_NAME);
     dao.intitializeLock(db);
 
     // when
@@ -55,7 +56,7 @@ public class LockDaoTest {
 
     // given
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
-    LockDao dao = new LockDao();
+    LockDao dao = new LockDao(LOCK_COLLECTION_NAME);
     dao.intitializeLock(db);
 
     // when
@@ -71,7 +72,9 @@ public class LockDaoTest {
   public void releaseLockShouldBeIdempotent() {
     // given
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
-    LockDao dao = new LockDao();
+    LockDao dao = new LockDao(LOCK_COLLECTION_NAME);
+    
+    
     dao.intitializeLock(db);
 
     // when
@@ -87,7 +90,7 @@ public class LockDaoTest {
   public void whenLockNotHeldCheckReturnsFalse() {
 
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
-    LockDao dao = new LockDao();
+    LockDao dao = new LockDao(LOCK_COLLECTION_NAME);
     dao.intitializeLock(db);
 
     assertFalse(dao.isLockHeld(db));
@@ -98,7 +101,7 @@ public class LockDaoTest {
   public void whenLockHeldCheckReturnsTrue() {
 
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
-    LockDao dao = new LockDao();
+    LockDao dao = new LockDao(LOCK_COLLECTION_NAME);
     dao.intitializeLock(db);
 
     dao.acquireLock(db);

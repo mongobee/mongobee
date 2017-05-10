@@ -1,6 +1,5 @@
 package com.github.mongobee.dao;
 
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -28,8 +27,9 @@ public class ChangeEntryIndexDaoTest {
   private static final String TEST_SERVER = "testServer";
   private static final String DB_NAME = "mongobeetest";
   private static final String CHANGEID_AUTHOR_INDEX_NAME = "changeId_1_author_1";
+  private static final String CHANGELOG_COLLECTION_NAME = "dbchangelog";
 
-  private ChangeEntryIndexDao dao = new ChangeEntryIndexDao();
+  private ChangeEntryIndexDao dao = new ChangeEntryIndexDao(CHANGELOG_COLLECTION_NAME);
 
   @Test
   public void shouldCreateRequiredUniqueIndex() {
@@ -39,7 +39,7 @@ public class ChangeEntryIndexDaoTest {
     when(mongo.getDatabase(Mockito.anyString())).thenReturn(db);
 
     // when
-    dao.createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION));
+    dao.createRequiredUniqueIndex(db.getCollection(CHANGELOG_COLLECTION_NAME));
 
     // then
     Document createdIndex = findIndex(db, CHANGEID_AUTHOR_INDEX_NAME);
@@ -55,7 +55,7 @@ public class ChangeEntryIndexDaoTest {
     MongoDatabase db = new Fongo(TEST_SERVER).getDatabase(DB_NAME);
     when(mongo.getDatabase(Mockito.anyString())).thenReturn(db);
 
-    MongoCollection<Document> collection = db.getCollection(CHANGELOG_COLLECTION);
+    MongoCollection<Document> collection = db.getCollection(CHANGELOG_COLLECTION_NAME);
     collection.createIndex(new Document()
         .append(ChangeEntry.KEY_CHANGEID, 1)
         .append(ChangeEntry.KEY_AUTHOR, 1));
@@ -67,7 +67,7 @@ public class ChangeEntryIndexDaoTest {
     assertFalse(dao.isUnique(createdIndex));
 
     // when
-    dao.dropIndex(db.getCollection(CHANGELOG_COLLECTION), index);
+    dao.dropIndex(db.getCollection(CHANGELOG_COLLECTION_NAME), index);
 
     // then
     assertNull(findIndex(db, CHANGEID_AUTHOR_INDEX_NAME));
@@ -75,7 +75,7 @@ public class ChangeEntryIndexDaoTest {
 
   private Document findIndex(MongoDatabase db, String indexName) {
 
-    for (MongoCursor<Document> iterator = db.getCollection(CHANGELOG_COLLECTION).listIndexes().iterator(); iterator.hasNext(); ) {
+    for (MongoCursor<Document> iterator = db.getCollection(CHANGELOG_COLLECTION_NAME).listIndexes().iterator(); iterator.hasNext(); ) {
       Document index = iterator.next();
       String name = (String) index.get("name");
       if (indexName.equals(name)) {

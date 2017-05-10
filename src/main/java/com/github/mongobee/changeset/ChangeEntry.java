@@ -12,8 +12,6 @@ import org.bson.Document;
  * @since 27/07/2014
  */
 public class ChangeEntry {
-  public static final String CHANGELOG_COLLECTION = "dbchangelog"; // ! Don't change due to backward compatibility issue
-
   public static final String KEY_CHANGEID = "changeId";
   public static final String KEY_AUTHOR = "author";
   public static final String KEY_TIMESTAMP = "timestamp";
@@ -25,7 +23,7 @@ public class ChangeEntry {
   private Date timestamp;
   private String changeLogClass;
   private String changeSetMethodName;
-
+  
   public ChangeEntry(String changeId, String author, Date timestamp, String changeLogClass, String changeSetMethodName) {
     this.changeId = changeId;
     this.author = author;
@@ -79,4 +77,5 @@ public class ChangeEntry {
   public String getChangeSetMethodName() {
     return this.changeSetMethodName;
   }
+  
 }
