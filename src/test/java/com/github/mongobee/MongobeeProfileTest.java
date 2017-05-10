@@ -1,6 +1,5 @@
 package com.github.mongobee;
 
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -18,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.github.fakemongo.Fongo;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
+import com.github.mongobee.dao.ChangeEntryIndexDao;
 import com.github.mongobee.resources.EnvironmentMock;
 import com.github.mongobee.test.changelogs.AnotherMongobeeTestResource;
 import com.github.mongobee.test.profiles.def.UnProfiledChangeLog;
@@ -34,6 +34,7 @@ import com.mongodb.client.MongoDatabase;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeProfileTest {
+  private static final String CHANGELOG_COLLECTION_NAME = "dbchangelog";
 
   public static final int CHANGELOG_COUNT = 12;
   @InjectMocks
@@ -41,6 +42,9 @@ public class MongobeeProfileTest {
 
   @Mock
   private ChangeEntryDao dao;
+  
+  @Mock
+  private ChangeEntryIndexDao indexDao;
 
   private DB fakeDb;
 
@@ -48,15 +52,19 @@ public class MongobeeProfileTest {
 
   @Before
   public void init() throws Exception {
-
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
     fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
+
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
         .thenReturn(fakeMongoDatabase);
     when(dao.getDb()).thenReturn(fakeDb);
     when(dao.getMongoDatabase()).thenReturn(fakeMongoDatabase);
     when(dao.acquireProcessLock()).thenReturn(true);
     doCallRealMethod().when(dao).save(any(ChangeEntry.class));
+    doCallRealMethod().when(dao).setChangelogCollectionName(anyString());
+    doCallRealMethod().when(dao).setIndexDao(any(ChangeEntryIndexDao.class));
+    dao.setIndexDao(indexDao);
+    dao.setChangelogCollectionName(CHANGELOG_COLLECTION_NAME);
 
     runner.setDbName("mongobeetest");
     runner.setEnabled(true);
@@ -73,19 +81,19 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change1);  //  no-@Profile  should not match
 
-    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change2);  //  @Profile("dev")  should not match
 
-    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
@@ -103,25 +111,25 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev1")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change1);
 
-    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev2")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change2);
 
-    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev3")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change3);  //  @Profile("dev")  should not match
 
-    long change4 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION)
+    long change4 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
@@ -139,7 +147,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document());
     assertEquals(0, changes);
   }
 
@@ -154,7 +162,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document());
     assertEquals(CHANGELOG_COUNT, changes);
   }
 
@@ -169,7 +177,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document());
     assertEquals(CHANGELOG_COUNT, changes);
   }
 
@@ -184,7 +192,7 @@ public class MongobeeProfileTest {
     runner.execute();
 
     // then
-    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION).count(new Document());
+    long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document());
     assertEquals(CHANGELOG_COUNT, changes);
   }
 

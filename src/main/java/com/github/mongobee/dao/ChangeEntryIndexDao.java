@@ -1,11 +1,8 @@
 package com.github.mongobee.dao;
 
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
-
 import org.bson.Document;
 
 import com.github.mongobee.changeset.ChangeEntry;
-import com.mongodb.DBCollection;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
@@ -15,6 +12,12 @@ import com.mongodb.client.model.IndexOptions;
  * @since 10.12.14
  */
 public class ChangeEntryIndexDao {
+
+  private String changelogCollectionName;
+	  
+  public ChangeEntryIndexDao(String changelogCollectionName) {
+	this.changelogCollectionName = changelogCollectionName;
+  }
 
   public void createRequiredUniqueIndex(MongoCollection<Document> collection) {
     collection.createIndex(new Document()
@@ -27,7 +30,7 @@ public class ChangeEntryIndexDao {
   public Document findRequiredChangeAndAuthorIndex(MongoDatabase db) {
     MongoCollection<Document> indexes = db.getCollection("system.indexes");
     Document index = indexes.find(new Document()
-        .append("ns", db.getName() + "." + CHANGELOG_COLLECTION)
+        .append("ns", db.getName() + "." + changelogCollectionName)
         .append("key", new Document().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
     ).first();
 
@@ -45,6 +48,10 @@ public class ChangeEntryIndexDao {
 
   public void dropIndex(MongoCollection<Document> collection, Document index) {
     collection.dropIndex(index.get("name").toString());
+  }
+
+  public void setChangelogCollectionName(String changelogCollectionName) {
+	this.changelogCollectionName = changelogCollectionName;
   }
 
 }
