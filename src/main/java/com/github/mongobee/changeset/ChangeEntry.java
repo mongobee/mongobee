@@ -5,7 +5,7 @@ import java.util.Date;
 import org.bson.Document;
 
 /**
- * Entry in the changes collection log {@link ChangeEntry#CHANGELOG_COLLECTION}
+ * Entry in the changes collection log {@link com.github.mongobee.Mongobee#DEFAULT_CHANGELOG_COLLECTION_NAME}
  * Type: entity class.
  *
  * @author lstolowski

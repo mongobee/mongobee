@@ -35,8 +35,8 @@ import com.mongodb.client.MongoDatabase;
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeProfileTest {
   private static final String CHANGELOG_COLLECTION_NAME = "dbchangelog";
-
   public static final int CHANGELOG_COUNT = 12;
+
   @InjectMocks
   private Mongobee runner = new Mongobee();
 

@@ -1,20 +1,5 @@
 package com.github.mongobee;
 
-import static com.mongodb.ServerAddress.defaultHost;
-import static com.mongodb.ServerAddress.defaultPort;
-import static org.springframework.util.StringUtils.hasText;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-
-import org.jongo.Jongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.env.Environment;
-import org.springframework.data.mongodb.core.MongoTemplate;
-
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangeSetException;
@@ -26,6 +11,20 @@ import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
+import org.jongo.Jongo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import static com.mongodb.ServerAddress.defaultHost;
+import static com.mongodb.ServerAddress.defaultPort;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Mongobee runner
@@ -35,6 +34,9 @@ import com.mongodb.client.MongoDatabase;
  */
 public class Mongobee implements InitializingBean {
   private static final Logger logger = LoggerFactory.getLogger(Mongobee.class);
+
+  private static final String DEFAULT_CHANGELOG_COLLECTION_NAME = "dbchangelog";
+  private static final String DEFAULT_LOCK_COLLECTION_NAME = "mongobeelock";
 
   private ChangeEntryDao dao;
 
@@ -47,9 +49,7 @@ public class Mongobee implements InitializingBean {
 
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
-  
-  private static final String DEFAULT_CHANGELOG_COLLECTION_NAME = "dbchangelog";
-  private static final String DEFAULT_LOCK_COLLECTION_NAME = "mongobeelock";
+
 
   /**
    * <p>Simple constructor with default configuration of host (localhost) and port (27017). Although
@@ -146,11 +146,11 @@ public class Mongobee implements InitializingBean {
     }
 
     if (!dao.acquireProcessLock()) {
-      logger.info("Mongobee did not aqcuire process lock. Exiting.");
+      logger.info("Mongobee did not acquire process lock. Exiting.");
       return;
     }
 
-    logger.info("Mongobee aqcuired process lock, starting the data migration sequence..");
+    logger.info("Mongobee acquired process lock, starting the data migration sequence..");
 
     try {
       executeMigration();
@@ -337,15 +337,30 @@ public class Mongobee implements InitializingBean {
     this.jongo = jongo;
     return this;
   }
-  
+
+  /**
+   * Overwrites a default mongobee changelog collection hardcoded in DEFAULT_CHANGELOG_COLLECTION_NAME.
+   * <br/><br/>
+   * CAUTION! Use this method carefully - when changing the name on a existing system,
+   * your changelogs will be executed again on your MongoDB instance
+   *
+   * @param changelogCollectionName a new changelog collection name
+   * @return
+   */
   public Mongobee setChangelogCollectionName(String changelogCollectionName) {
-	this.dao.setChangelogCollectionName(changelogCollectionName);
-	return this;
+    this.dao.setChangelogCollectionName(changelogCollectionName);
+    return this;
   }
-  
+
+  /**
+   * Overwrites a default mongobee lock collection hardcoded in DEFAULT_LOCK_COLLECTION_NAME
+   *
+   * @param lockCollectionName a new lock collection name
+   * @return
+   */
   public Mongobee setLockCollectionName(String lockCollectionName) {
-	this.dao.setLockCollectionName(lockCollectionName);
-	return this;
+    this.dao.setLockCollectionName(lockCollectionName);
+    return this;
   }
 
   /**
