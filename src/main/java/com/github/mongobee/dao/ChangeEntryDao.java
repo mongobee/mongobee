@@ -1,6 +1,5 @@
 package com.github.mongobee.dao;
 
-import static com.github.mongobee.changeset.ChangeEntry.CHANGELOG_COLLECTION;
 import static org.springframework.util.StringUtils.hasText;
 
 import org.bson.Document;
@@ -26,9 +25,16 @@ public class ChangeEntryDao {
   private MongoDatabase mongoDatabase;
   private DB db;  // only for Jongo driver compatibility - do not use in other contexts
   private MongoClient mongoClient;
-  private ChangeEntryIndexDao indexDao = new ChangeEntryIndexDao();
+  private ChangeEntryIndexDao indexDao;
+  private String changelogCollectionName;
 
-  private LockDao lockDao = new LockDao();
+  private LockDao lockDao;
+
+  public ChangeEntryDao(String changelogCollectionName, String lockCollectionName) {
+	this.indexDao = new ChangeEntryIndexDao(changelogCollectionName);
+	this.lockDao = new LockDao(lockCollectionName);
+	this.changelogCollectionName = changelogCollectionName;
+  }
 
   public MongoDatabase getMongoDatabase() {
     return mongoDatabase;
@@ -52,7 +58,7 @@ public class ChangeEntryDao {
       db = mongo.getDB(dbName); // for Jongo driver and backward compatibility (constructor has required parameter Jongo(DB) )
       mongoDatabase = mongo.getDatabase(dbName);
 
-      ensureChangeLogCollectionIndex(mongoDatabase.getCollection(CHANGELOG_COLLECTION));
+      ensureChangeLogCollectionIndex(mongoDatabase.getCollection(changelogCollectionName));
       initializeLock();
       return mongoDatabase;
     }
@@ -90,7 +96,7 @@ public class ChangeEntryDao {
   public boolean isNewChange(ChangeEntry changeEntry) throws MongobeeConnectionException {
     verifyDbConnection();
 
-    MongoCollection<Document> mongobeeChangeLog = getMongoDatabase().getCollection(CHANGELOG_COLLECTION);
+    MongoCollection<Document> mongobeeChangeLog = getMongoDatabase().getCollection(changelogCollectionName);
     Document entry = mongobeeChangeLog.find(changeEntry.buildSearchQueryDBObject()).first();
 
     return entry == null;
@@ -99,7 +105,7 @@ public class ChangeEntryDao {
   public void save(ChangeEntry changeEntry) throws MongobeeConnectionException {
     verifyDbConnection();
 
-    MongoCollection<Document> mongobeeLog = getMongoDatabase().getCollection(CHANGELOG_COLLECTION);
+    MongoCollection<Document> mongobeeLog = getMongoDatabase().getCollection(changelogCollectionName);
 
     mongobeeLog.insertOne(changeEntry.buildFullDBObject());
   }
@@ -115,11 +121,11 @@ public class ChangeEntryDao {
     Document index = indexDao.findRequiredChangeAndAuthorIndex(mongoDatabase);
     if (index == null) {
       indexDao.createRequiredUniqueIndex(collection);
-      logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was created");
+      logger.debug("Index in collection " + changelogCollectionName + " was created");
     } else if (!indexDao.isUnique(index)) {
       indexDao.dropIndex(collection, index);
       indexDao.createRequiredUniqueIndex(collection);
-      logger.debug("Index in collection " + CHANGELOG_COLLECTION + " was recreated");
+      logger.debug("Index in collection " + changelogCollectionName + " was recreated");
     }
 
   }
@@ -132,8 +138,7 @@ public class ChangeEntryDao {
     lockDao.intitializeLock(mongoDatabase);
   }
 
-  /* Visible for testing */
-  void setIndexDao(ChangeEntryIndexDao changeEntryIndexDao) {
+  public void setIndexDao(ChangeEntryIndexDao changeEntryIndexDao) {
     this.indexDao = changeEntryIndexDao;
   }
 
@@ -142,4 +147,13 @@ public class ChangeEntryDao {
     this.lockDao = lockDao;
   }
 
+  public void setChangelogCollectionName(String changelogCollectionName) {
+	this.indexDao.setChangelogCollectionName(changelogCollectionName);
+	this.changelogCollectionName = changelogCollectionName;
+  }
+
+  public void setLockCollectionName(String lockCollectionName) {
+	this.lockDao.setLockCollectionName(lockCollectionName);
+  }
+  
 }
