@@ -1,8 +1,8 @@
 package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.test.changelogs.AnotherMongobeeTestResource;
-import com.github.mongobee.test.changelogs.MongobeeTestResource;
+import com.github.mongobee.exception.MongobeeChangeSetException;
+import com.github.mongobee.test.changelogs.*;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -30,7 +30,7 @@ public class ChangeServiceTest {
   }
   
   @Test
-  public void shouldFindChangeSetMethods(){
+  public void shouldFindChangeSetMethods() throws MongobeeChangeSetException {
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
@@ -43,7 +43,7 @@ public class ChangeServiceTest {
   }
 
   @Test
-  public void shouldFindIsRunAlwaysMethod(){
+  public void shouldFindIsRunAlwaysMethod() throws MongobeeChangeSetException {
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
@@ -62,7 +62,7 @@ public class ChangeServiceTest {
   }
 
   @Test
-  public void shouldCreateEntry(){
+  public void shouldCreateEntry() throws MongobeeChangeSetException {
     
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
@@ -81,6 +81,13 @@ public class ChangeServiceTest {
       Assert.assertNotNull(entry.getChangeId());
       Assert.assertNotNull(entry.getChangeSetMethodName());
     }
+  }
+
+  @Test(expected = MongobeeChangeSetException.class)
+  public void shouldFailOnDuplicatedChangeSets() throws MongobeeChangeSetException {
+    String scanPackage = ChangeLogWithDuplicate.class.getPackage().getName();
+    ChangeService service = new ChangeService(scanPackage);
+    service.fetchChangeSets(ChangeLogWithDuplicate.class);
   }
 
 }
