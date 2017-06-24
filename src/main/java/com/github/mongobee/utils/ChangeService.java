@@ -85,10 +85,17 @@ public class ChangeService {
 
   private boolean matchesActiveSpringProfile(AnnotatedElement element) {
     if (element.isAnnotationPresent(Profile.class)) {
-      Profile profiles = element.getAnnotation(Profile.class);
-      List<String> values = asList(profiles.value());
-      return ListUtils.intersection(activeProfiles, values).size() > 0 ? true : false;
-
+      List<String> profiles = asList(element.getAnnotation(Profile.class).value());
+      for (String profile : profiles) {
+        if (profile != null && profile.length() > 0 && profile.charAt(0) == '!') {
+          if (!activeProfiles.contains(profile.substring(1))) {
+            return true;
+          }
+        } else if (activeProfiles.contains(profile)) {
+          return true;
+        }
+      }
+      return false;
     } else {
       return true; // no-profiled changeset always matches
     }

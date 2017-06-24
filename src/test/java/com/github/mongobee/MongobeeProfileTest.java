@@ -133,7 +133,13 @@ public class MongobeeProfileTest {
         .count(new Document()
             .append(ChangeEntry.KEY_CHANGEID, "Pdev4")
             .append(ChangeEntry.KEY_AUTHOR, "testuser"));
-    assertEquals(0, change4);  //  @Profile("default")  should not match
+    assertEquals(0, change4);  //  @Profile("pro")  should not match
+
+    long change5 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME)
+        .count(new Document()
+            .append(ChangeEntry.KEY_CHANGEID, "Pdev5")
+            .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(1, change5);  //  @Profile("!pro")  should match
   }
 
   @Test
