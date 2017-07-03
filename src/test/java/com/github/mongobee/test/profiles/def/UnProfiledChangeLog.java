@@ -27,4 +27,9 @@ public class UnProfiledChangeLog {
   public void testChangeSet4(){
     System.out.println("invoked Pdev4");
   }
+  @ChangeSet(author = "testuser", id = "Pdev5", order = "05")
+  @Profile("!pro")
+  public void testChangeSet5() {
+    System.out.println("invoked Pdev5");
+  }
 }
