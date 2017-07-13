@@ -1,19 +1,5 @@
 package com.github.mongobee;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.when;
-
-import org.bson.Document;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import com.github.fakemongo.Fongo;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
@@ -25,9 +11,24 @@ import com.github.mongobee.test.profiles.dev.ProfiledDevChangeLog;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
+
+import org.bson.Document;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for Spring profiles integration
@@ -38,7 +39,7 @@ import org.springframework.core.env.StandardEnvironment;
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeProfileTest {
   private static final String CHANGELOG_COLLECTION_NAME = "dbchangelog";
-  public static final int CHANGELOG_COUNT = 12;
+  public static final int CHANGELOG_COUNT = 13;
 
   @InjectMocks
   private Mongobee runner = new Mongobee();
@@ -71,7 +72,7 @@ public class MongobeeProfileTest {
 
     runner.setDbName("mongobeetest");
     runner.setEnabled(true);
-  }
+  } // TODO code duplication
 
   @Test
   public void shouldRunDevProfileAndNonAnnotated() throws Exception {
@@ -205,6 +206,13 @@ public class MongobeeProfileTest {
     // then
     long changes = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document());
     assertEquals(CHANGELOG_COUNT, changes);
+  }
+
+  @After
+  public void cleanUp() {
+    runner.setMongoTemplate(null);
+    runner.setJongo(null);
+    fakeDb.dropDatabase();
   }
 
 }

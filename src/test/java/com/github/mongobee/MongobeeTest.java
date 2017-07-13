@@ -1,20 +1,15 @@
 package com.github.mongobee;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.UnknownHostException;
-import java.util.Collections;
-
+import com.github.fakemongo.Fongo;
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.dao.ChangeEntryDao;
+import com.github.mongobee.dao.ChangeEntryIndexDao;
+import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.exception.MongobeeException;
+import com.github.mongobee.test.changelogs.MongobeeTestResource;
+import com.mongodb.DB;
+import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.jongo.Jongo;
 import org.junit.After;
@@ -26,16 +21,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import com.github.fakemongo.Fongo;
-import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.dao.ChangeEntryDao;
-import com.github.mongobee.dao.ChangeEntryIndexDao;
-import com.github.mongobee.exception.MongobeeConfigurationException;
-import com.github.mongobee.exception.MongobeeException;
-import com.github.mongobee.test.changelogs.MongobeeTestResource;
-import com.mongodb.DB;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
+import java.net.UnknownHostException;
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeTest {
@@ -46,7 +39,7 @@ public class MongobeeTest {
 
   @Mock
   private ChangeEntryDao dao;
-  
+
   @Mock
   private ChangeEntryIndexDao indexDao;
 
@@ -81,7 +74,7 @@ public class MongobeeTest {
   }
 
   @Test
-  public void shouldExecute9ChangeSets() throws Exception {
+  public void shouldExecuteAllChangeSets() throws Exception {
     // given
     when(dao.acquireProcessLock()).thenReturn(true);
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
@@ -90,7 +83,7 @@ public class MongobeeTest {
     runner.execute();
 
     // then
-    verify(dao, times(12)).save(any(ChangeEntry.class)); // 12 changesets saved to dbchangelog
+    verify(dao, times(13)).save(any(ChangeEntry.class)); // 13 changesets saved to dbchangelog
 
     // dbchangelog collection checking
     long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
@@ -116,7 +109,7 @@ public class MongobeeTest {
 
     long changeAll = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
         .append(ChangeEntry.KEY_AUTHOR, "testuser"));
-    assertEquals(11, changeAll);
+    assertEquals(12, changeAll);
   }
 
   @Test
@@ -225,6 +218,7 @@ public class MongobeeTest {
   public void cleanUp() {
     runner.setMongoTemplate(null);
     runner.setJongo(null);
+    fakeDb.dropDatabase();
   }
 
 }

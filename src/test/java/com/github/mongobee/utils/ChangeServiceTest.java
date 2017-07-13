@@ -60,6 +60,19 @@ public class ChangeServiceTest {
   }
 
   @Test
+  public void shouldFindAnotherChangeSetMethods() throws MongobeeChangeSetException {
+    // given
+    String scanPackage = MongobeeTestResource.class.getPackage().getName();
+    ChangeService service = new ChangeService(scanPackage);
+
+    // when
+    List<Method> foundMethods = service.fetchChangeSets(AnotherMongobeeTestResource.class);
+
+    // then
+    assertTrue(foundMethods != null && foundMethods.size() == 6);
+  }
+
+  @Test
   public void shouldFindIsRunAlwaysMethod() throws MongobeeChangeSetException {
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
@@ -75,7 +88,6 @@ public class ChangeServiceTest {
         assertFalse(service.isRunAlwaysChangeSet(foundMethod));
       }
     }
-    assertTrue(foundMethods != null && foundMethods.size() == 6);
   }
 
   @Test
