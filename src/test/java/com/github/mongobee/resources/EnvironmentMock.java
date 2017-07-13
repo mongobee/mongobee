@@ -77,6 +77,6 @@ public class EnvironmentMock implements Environment {
 
   @Override
   public String resolveRequiredPlaceholders(String s) throws IllegalArgumentException {
-    return null;
+    return s;
   }
 }

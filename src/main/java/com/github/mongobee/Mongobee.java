@@ -1,6 +1,7 @@
 package com.github.mongobee;
 
 import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.exception.MongobeeConfigurationException;
@@ -15,16 +16,22 @@ import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.env.Environment;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
-import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Mongobee runner
@@ -41,7 +48,7 @@ public class Mongobee implements InitializingBean {
   private ChangeEntryDao dao;
 
   private boolean enabled = true;
-  private String changeLogsScanPackage;
+  private ChangeLogsSupplier changeLogsSupplier;
   private MongoClientURI mongoClientURI;
   private MongoClient mongoClient;
   private String dbName;
@@ -162,27 +169,24 @@ public class Mongobee implements InitializingBean {
     logger.info("Mongobee has finished his job.");
   }
 
-  private void executeMigration() throws MongobeeConnectionException, MongobeeException {
+  private void executeMigration() throws MongobeeException {
 
-    ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
+    ChangeService service = new ChangeService(changeLogsSupplier, springEnvironment);
 
-    for (Class<?> changelogClass : service.fetchChangeLogs()) {
-
-      Object changelogInstance = null;
+    for (Object changeLog : service.fetchChangeLogs()) {
       try {
-        changelogInstance = changelogClass.getConstructor().newInstance();
-        List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
+        List<Method> changesetMethods = service.fetchChangeSets(changeLog.getClass());
 
         for (Method changesetMethod : changesetMethods) {
           ChangeEntry changeEntry = service.createChangeEntry(changesetMethod);
 
           try {
             if (dao.isNewChange(changeEntry)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
+              executeChangeSetMethod(changesetMethod, changeLog, dao.getDb(), dao.getMongoDatabase());
               dao.save(changeEntry);
               logger.info(changeEntry + " applied");
             } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
+              executeChangeSetMethod(changesetMethod, changeLog, dao.getDb(), dao.getMongoDatabase());
               logger.info(changeEntry + " reapplied");
             } else {
               logger.info(changeEntry + " passed over");
@@ -191,15 +195,11 @@ public class Mongobee implements InitializingBean {
             logger.error(e.getMessage());
           }
         }
-      } catch (NoSuchMethodException e) {
-        throw new MongobeeException(e.getMessage(), e);
       } catch (IllegalAccessException e) {
         throw new MongobeeException(e.getMessage(), e);
       } catch (InvocationTargetException e) {
         Throwable targetException = e.getTargetException();
         throw new MongobeeException(targetException.getMessage(), e);
-      } catch (InstantiationException e) {
-        throw new MongobeeException(e.getMessage(), e);
       }
 
     }
@@ -244,11 +244,11 @@ public class Mongobee implements InitializingBean {
   }
 
   private void validateConfig() throws MongobeeConfigurationException {
-    if (!hasText(dbName)) {
+    if (!StringUtils.hasText(dbName)) {
       throw new MongobeeConfigurationException("DB name is not set. It should be defined in MongoDB URI or via setter");
     }
-    if (!hasText(changeLogsScanPackage)) {
-      throw new MongobeeConfigurationException("Scan package for changelogs is not set: use appropriate setter");
+    if (changeLogsSupplier == null) {
+      throw new MongobeeConfigurationException("Supplier of changelogs is not set: use appropriate setter");
     }
   }
 
@@ -288,8 +288,20 @@ public class Mongobee implements InitializingBean {
    * @param changeLogsScanPackage package where your changelogs are
    * @return Mongobee object for fluent interface
    */
-  public Mongobee setChangeLogsScanPackage(String changeLogsScanPackage) {
-    this.changeLogsScanPackage = changeLogsScanPackage;
+  public Mongobee setChangeLogsScanPackage(final String changeLogsScanPackage) {
+
+    this.changeLogsSupplier = new PackageScanningChangeLogsSupplier(changeLogsScanPackage, springEnvironment);
+    return this;
+  }
+
+  /**
+   * Sets a supplier of instances of classes annotated with {@link ChangeLog}.
+   * Will supersede any invocation of {@link #setChangeLogsScanPackage(String)}.
+   *
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setChangeLogsSupplier(final ChangeLogsSupplier changeLogsSupplier) {
+    this.changeLogsSupplier = changeLogsSupplier;
     return this;
   }
 

@@ -1,11 +1,10 @@
 package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.ChangeLog;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.Comparator;
-
-import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Sort ChangeLogs by 'order' value or class name (if no 'order' is set)
@@ -13,14 +12,35 @@ import static org.springframework.util.StringUtils.hasText;
  * @author lstolowski
  * @since 2014-09-17
  */
-public class ChangeLogComparator implements Comparator<Class<?>>, Serializable {
+public class ChangeLogComparator implements Comparator<Object>, Serializable {
   @Override
-  public int compare(Class<?> o1, Class<?> o2) {
-    ChangeLog c1 = o1.getAnnotation(ChangeLog.class);
-    ChangeLog c2 = o2.getAnnotation(ChangeLog.class);
+  public int compare(Object o1, Object o2) {
+    Object[] objects = new Object[] {o1, o2};
+    ChangeLog[] changeLogs = new ChangeLog[2];
+    Class<?>[] classes = new Class<?>[2];
 
-    String val1 = !(hasText(c1.order())) ? o1.getCanonicalName() : c1.order();
-    String val2 = !(hasText(c2.order())) ? o2.getCanonicalName() : c2.order();
+    for (int i = 0; i < 2; i++) {
+      classes[i] = objects[i].getClass();
+      // search class hierarchy for @ChangeLog--this allows for possible proxying of ChangeLog classes
+      while (changeLogs[i] == null) {
+        changeLogs[i] = classes[i].getAnnotation(ChangeLog.class);
+        if (changeLogs[i] == null) {
+          classes[i] = classes[i].getSuperclass();
+          if (classes[i] == Object.class) {
+            throw new IllegalArgumentException(
+                String.format("Could not find ChangeLog annotation in class hierarchy of class %s",
+                    objects[i].getClass().getName()));
+          }
+        }
+      }
+    }
+
+    String val1 = StringUtils.isEmpty(changeLogs[0].order())
+        ? classes[0].getCanonicalName()
+        : changeLogs[0].order();
+    String val2 = StringUtils.isEmpty(changeLogs[1].order())
+        ? classes[1].getCanonicalName()
+        : changeLogs[1].order();
 
     if (val1 == null && val2 == null){
       return 0;

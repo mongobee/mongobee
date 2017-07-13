@@ -11,6 +11,7 @@ import com.github.mongobee.test.profiles.dev.ProfiledDevChangeLog;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
+
 import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
@@ -19,6 +20,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -73,7 +77,9 @@ public class MongobeeProfileTest {
   @Test
   public void shouldRunDevProfileAndNonAnnotated() throws Exception {
     // given
-    runner.setSpringEnvironment(new EnvironmentMock("dev", "test"));
+    ConfigurableEnvironment env = new StandardEnvironment();
+    env.addActiveProfile("dev");
+    runner.setSpringEnvironment(env);
     runner.setChangeLogsScanPackage(ProfiledDevChangeLog.class.getPackage().getName());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
