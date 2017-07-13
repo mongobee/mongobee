@@ -15,7 +15,7 @@ import java.util.Collection;
  * <p>A possible usage is to have Spring register changelogs as beans by performing a component scan on
  * packages containing ChangeLog classes, using {@link ChangeLog} as a component identifier (e.g., with
  * {@link org.springframework.context.annotation.ComponentScan#includeFilters()}). This allows the scripts to take
- * advantage of dependency-injected components, be proxied by Spring with additional generic functionality
+ * advantage of dependency injection, be proxied by Spring with additional generic functionality
  * such as common logging, etc.
  */
 public class SpringContextChangeLogsSupplier

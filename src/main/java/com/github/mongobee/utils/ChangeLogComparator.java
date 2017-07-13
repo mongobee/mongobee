@@ -28,7 +28,8 @@ public class ChangeLogComparator implements Comparator<Object>, Serializable {
           classes[i] = classes[i].getSuperclass();
           if (classes[i] == Object.class) {
             throw new IllegalArgumentException(
-                String.format("Could not get ChangeLog annotation from class: %s", objects[i].getClass().getName()));
+                String.format("Could not find ChangeLog annotation in class hierarchy of class %s",
+                    objects[i].getClass().getName()));
           }
         }
       }

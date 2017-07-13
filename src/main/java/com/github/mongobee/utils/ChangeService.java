@@ -3,17 +3,21 @@ package com.github.mongobee.utils;
 import com.github.mongobee.ChangeLogsSupplier;
 import com.github.mongobee.PackageScanningChangeLogsSupplier;
 import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
 import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.exception.MongobeeException;
-import org.reflections.Reflections;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -128,7 +132,7 @@ public class ChangeService {
     return filtered;
   }
 
-  private List<Method> filterChangeSetAnnotation(List<Method> allMethods) throws MongobeeChangeSetException {
+  private static List<Method> filterChangeSetAnnotation(List<Method> allMethods) throws MongobeeChangeSetException {
     final Set<String> changeSetIds = new HashSet<>();
     final List<Method> changesetMethods = new ArrayList<>();
     for (final Method method : allMethods) {

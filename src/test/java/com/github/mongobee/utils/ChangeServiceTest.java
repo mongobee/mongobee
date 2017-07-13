@@ -1,12 +1,16 @@
 package com.github.mongobee.utils;
 
+import com.github.mongobee.ChangeLogsSupplier;
 import com.github.mongobee.PackageScanningChangeLogsSupplier;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeChangeSetException;
+import com.github.mongobee.test.SpringConfigWithProxying;
 import com.github.mongobee.test.changelogs.AnotherMongobeeTestResource;
 import com.github.mongobee.test.changelogs.MongobeeTestResource;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -42,6 +46,17 @@ public class ChangeServiceTest {
     
     // then
     assertTrue(foundMethods != null && foundMethods.size() == 5);
+  }
+
+  @Test
+  public void shouldFindChangeSetsOnProxiedClass() throws MongobeeChangeSetException {
+
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfigWithProxying.class);
+    ChangeLogsSupplier changeLogsSupplier = context.getBean(ChangeLogsSupplier.class);
+    ChangeService changeService = new ChangeService(changeLogsSupplier);
+
+    List<Method> foundMethods = changeService.fetchChangeSets(MongobeeTestResource.class);
+    assertTrue(foundMethods.size() == 5);
   }
 
   @Test

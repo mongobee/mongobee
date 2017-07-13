@@ -49,4 +49,8 @@ public class MongobeeTestResource {
 
   }
 
+  public void notAChangeSet() {
+
+    System.err.println("not a ChangeSet");
+  }
 }
