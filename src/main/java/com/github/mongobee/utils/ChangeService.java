@@ -69,7 +69,7 @@ public class ChangeService {
     List<Method> changeSets;
     Class<?> cls = type;
     do {
-      changeSets = filterChangeSetAnnotation(asList(type.getDeclaredMethods()));
+      changeSets = filterChangeSetAnnotation(asList(cls.getDeclaredMethods()));
     } while (changeSets.isEmpty() && (cls = cls.getSuperclass()) != Object.class);
 
     final List<Method> filteredChangeSets = filterMethodsByActiveProfiles(changeSets);
