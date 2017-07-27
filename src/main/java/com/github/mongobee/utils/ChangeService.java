@@ -10,7 +10,13 @@ import org.springframework.core.env.Environment;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -84,21 +90,23 @@ public class ChangeService {
   }
 
   private boolean matchesActiveSpringProfile(AnnotatedElement element) {
-    if (element.isAnnotationPresent(Profile.class)) {
-      List<String> profiles = asList(element.getAnnotation(Profile.class).value());
-      for (String profile : profiles) {
-        if (profile != null && profile.length() > 0 && profile.charAt(0) == '!') {
-          if (!activeProfiles.contains(profile.substring(1))) {
-            return true;
-          }
-        } else if (activeProfiles.contains(profile)) {
-          return true;
-        }
-      }
-      return false;
-    } else {
+    if (!ClassUtils.isPresent("org.springframework.context.annotation.Profile", null)) {
+      return true;
+    }
+    if (!element.isAnnotationPresent(Profile.class)) {
       return true; // no-profiled changeset always matches
     }
+    List<String> profiles = asList(element.getAnnotation(Profile.class).value());
+    for (String profile : profiles) {
+      if (profile != null && profile.length() > 0 && profile.charAt(0) == '!') {
+        if (!activeProfiles.contains(profile.substring(1))) {
+          return true;
+        }
+      } else if (activeProfiles.contains(profile)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private List<?> filterByActiveProfiles(Collection<? extends AnnotatedElement> annotated) {
