@@ -346,12 +346,12 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Overwrites a default mongobee changelog collection hardcoded in DEFAULT_CHANGELOG_COLLECTION_NAME.
-   * <br/><br/>
+   *
    * CAUTION! Use this method carefully - when changing the name on a existing system,
    * your changelogs will be executed again on your MongoDB instance
    *
    * @param changelogCollectionName a new changelog collection name
-   * @return
+   * @return Mongobee object for fluent interface
    */
   public Mongobee setChangelogCollectionName(String changelogCollectionName) {
     this.dao.setChangelogCollectionName(changelogCollectionName);
@@ -362,7 +362,7 @@ public class Mongobee implements InitializingBean {
    * Overwrites a default mongobee lock collection hardcoded in DEFAULT_LOCK_COLLECTION_NAME
    *
    * @param lockCollectionName a new lock collection name
-   * @return
+   * @return Mongobee object for fluent interface
    */
   public Mongobee setLockCollectionName(String lockCollectionName) {
     this.dao.setLockCollectionName(lockCollectionName);
