@@ -9,7 +9,7 @@
 
     <groupId>com.github.mongobee</groupId>
     <artifactId>mongobee</artifactId>
-    <version>0.13-SNAPSHOT</version>
+    <version>0.13</version>
 
     <licenses>
         <license>
@@ -23,7 +23,7 @@
         <connection>scm:git:git@github.com:mongobee/mongobee.git</connection>
         <developerConnection>scm:git:git@github.com:mongobee/mongobee.git</developerConnection>
         <url>git@github.com:mongobee/mongobee.git</url>
-        <tag>mongobee-tag</tag>
+        <tag>mongobee-0.13</tag>
     </scm>
 
     <developers>
