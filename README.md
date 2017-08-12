@@ -47,7 +47,6 @@ public Mongobee mongobee(){
   runner.setDbName("yourDbName");         // host must be set if not set in URI
   runner.setChangeLogsScanPackage(
        "com.example.yourapp.changelogs"); // the package to be scanned for changesets
-  runner.setEnabled(true);                // optional: default is true
   
   return runner;
 }
@@ -61,7 +60,6 @@ Using mongobee without a spring context has similar configuration but you have t
   runner.setDbName("yourDbName");         // host must be set if not set in URI
   runner.setChangeLogsScanPackage(
        "com.example.yourapp.changelogs"); // package to scan for changesets
-  runner.setEnabled(true);                // optional: default is true
   
   runner.execute();         //  ------> starts migration changesets
 ```
@@ -71,7 +69,7 @@ Above examples provide minimal configuration. `Mongobee` object provides some ot
 ```java
 runner.setChangelogCollectionName(logColName);   // default is dbchangelog, collection with applied change sets
 runner.setLockCollectionName(lockColName);       // default is mongobeelock, collection used during migration process
-
+runner.setEnabled(shouldBeEnabled);              // default is true, migration won't start if set to false
 ```
 
 MongoDB URI format:
