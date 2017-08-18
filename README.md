@@ -14,7 +14,7 @@ The goal is to keep this tool simple and comfortable to use.
 
 ## Getting started
 
-#### Add a dependency
+### Add a dependency
 
 With Maven
 ```xml
@@ -30,16 +30,12 @@ compile 'org.javassist:javassist:3.18.2-GA' // workaround for ${javassist.versio
 compile 'com.github.mongobee:mongobee:0.13'
 ```
 
-#### Usage with Spring
+### Usage with Spring
 
 You need to instantiate Mongobee object and provide some configuration.
 If you use Spring can be instantiated as a singleton bean in the Spring context. 
 In this case the migration process will be executed automatically on startup.
 
-mongobee can be run manually as well.
-
-
-##### Defining Spring's bean
 ```java
 @Bean
 public Mongobee mongobee(){
@@ -52,16 +48,17 @@ public Mongobee mongobee(){
 }
 ```
 
-#### Usage without Spring
+
+### Usage without Spring
 Using mongobee without a spring context has similar configuration but you have to remember to run `execute()` method to start a migration process.
 
 ```java
-  Mongobee runner = new Mongobee("mongodb://YOUR_DB_HOST:27017/DB_NAME");
-  runner.setDbName("yourDbName");         // host must be set if not set in URI
-  runner.setChangeLogsScanPackage(
-       "com.example.yourapp.changelogs"); // package to scan for changesets
-  
-  runner.execute();         //  ------> starts migration changesets
+Mongobee runner = new Mongobee("mongodb://YOUR_DB_HOST:27017/DB_NAME");
+runner.setDbName("yourDbName");         // host must be set if not set in URI
+runner.setChangeLogsScanPackage(
+     "com.example.yourapp.changelogs"); // package to scan for changesets
+
+runner.execute();         //  ------> starts migration changesets
 ```
 
 Above examples provide minimal configuration. `Mongobee` object provides some other possibilities (setters) to make the tool more flexible:
@@ -81,7 +78,7 @@ mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][
 
 ### Creating change logs
 
-`ChangeLog` contains bunch of `ChangeSet`s. `ChangeSet` is a single task (set of instructions made on a database).
+`ChangeLog` contains bunch of `ChangeSet`s. `ChangeSet` is a single task (set of instructions made on a database). In other words `ChangeLog` is a class annotated with `@ChangeLog` and containing methods annotated with `@ChangeSet`.
 
 ```java 
 package com.example.yourapp.changelogs;
@@ -175,7 +172,7 @@ public void someChange5(MongoTemplate mongoTemplate, Environment environment) {
 }
 ```
 
-#### Using Spring profiles
+### Using Spring profiles
      
 **mongobee** accepts Spring's `org.springframework.context.annotation.Profile` annotation. If a change log or change set class is annotated  with `@Profile`, 
 then it is activated for current application profiles.
@@ -200,7 +197,7 @@ public class ChangelogForTestEnv{
 }
 ```
 
-##### Enabling @Profile annotation (option)
+#### Enabling @Profile annotation (option)
       
 To enable the `@Profile` integration, please inject `org.springframework.core.env.Environment` to you runner.
 
@@ -230,7 +227,6 @@ com.mongodb.WriteConcernException: { "serverUsed" : "localhost" ,
 
 You can exclude mongo-java-driver from **mongobee**  and use your dependency only. Maven example (pom.xml) below:
 ```xml
-
 <dependency>
     <groupId>org.mongodb</groupId>
     <artifactId>mongo-java-driver</artifactId>
