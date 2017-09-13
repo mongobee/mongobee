@@ -1,10 +1,9 @@
-package org.github.mongobee.spring;
+package org.github.mongobee.spring.utils;
 
 import com.github.mongobee.core.exception.MongobeeChangeSetException;
 import com.github.mongobee.core.utils.ChangeLogComparator;
 import com.github.mongobee.core.utils.ChangeSetComparator;
 import com.github.mongobee.core.utils.ChangeService;
-import com.github.mongobee.core.utils.ClassUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
@@ -32,20 +31,15 @@ public class SpringChangeService extends ChangeService {
   @Override
   public List<Class<?>> fetchChangeLogs() {
     List<Class<?>> changeLogs = super.fetchChangeLogs();
-    List<Class<?>> filteredChangeLogs = filterByActiveProfiles(changeLogs);
-    Collections.sort(filteredChangeLogs, new ChangeLogComparator());
 
-    return filteredChangeLogs;
+    return filterByActiveProfiles(changeLogs);
   }
 
   @Override
   public List<Method> fetchChangeSets(Class<?> type) throws MongobeeChangeSetException {
-    final List<Method> changeSets = filterChangeSetAnnotation(asList(type.getDeclaredMethods()));
+    final List<Method> changeSets = super.fetchChangeSets(type);
 
-    final List<Method> filteredChangeSets = (List<Method>) filterByActiveProfiles(changeSets);
-    Collections.sort(filteredChangeSets, new ChangeSetComparator());
-
-    return filteredChangeSets;
+    return filterByActiveProfiles(changeSets);
   }
 
   public SpringChangeService(String changeLogsBasePackage, Environment environment) {
