@@ -41,6 +41,10 @@ public class ChangeEntryDao {
     return mongoDatabase;
   }
 
+  public MongoClient getMongoClient() {
+    return mongoClient;
+  }
+
   /**
    * @deprecated implemented only for Jongo driver compatibility and backward compatibility - do not use in other contexts
    * @return com.mongodb.DB
@@ -71,10 +75,6 @@ public class ChangeEntryDao {
     final MongoClient mongoClient = new MongoClient(mongoClientURI);
     final String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
     return this.connectMongoDb(mongoClient, database);
-  }
-
-  public MongoClient getMongoClient() {
-    return mongoClient;
   }
 
   /**
