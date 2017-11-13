@@ -24,6 +24,7 @@ public class ChangeEntryDao {
 
   private MongoDatabase mongoDatabase;
   private DB db;  // only for Jongo driver compatibility - do not use in other contexts
+
   private MongoClient mongoClient;
   private ChangeEntryIndexDao indexDao;
   private String changelogCollectionName;
@@ -70,6 +71,10 @@ public class ChangeEntryDao {
     final MongoClient mongoClient = new MongoClient(mongoClientURI);
     final String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
     return this.connectMongoDb(mongoClient, database);
+  }
+
+  public MongoClient getMongoClient() {
+    return mongoClient;
   }
 
   /**

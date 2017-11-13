@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -162,13 +163,13 @@ public class Mongobee implements InitializingBean {
     logger.info("Mongobee has finished his job.");
   }
 
-  private void executeMigration() throws MongobeeConnectionException, MongobeeException {
+  private void executeMigration() throws MongobeeException {
 
     ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
     for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
-      Object changelogInstance = null;
+      Object changelogInstance;
       try {
         changelogInstance = changelogClass.getConstructor().newInstance();
         List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
@@ -221,13 +222,13 @@ public class Mongobee implements InitializingBean {
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName));
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(new SimpleMongoDbFactory(new MongoClient(), dbName)));
     } else if (changeSetMethod.getParameterTypes().length == 2
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
         && changeSetMethod.getParameterTypes()[1].equals(Environment.class)) {
       logger.debug("method with MongoTemplate and environment arguments");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName), springEnvironment);
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(new SimpleMongoDbFactory(new MongoClient(), dbName)), springEnvironment);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
       logger.debug("method with DB argument");

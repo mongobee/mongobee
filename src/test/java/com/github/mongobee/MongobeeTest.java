@@ -19,6 +19,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.net.UnknownHostException;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MongobeeTest {
+  private static final Logger logger = LoggerFactory.getLogger(MongobeeTest.class);
 
   private static final String CHANGELOG_COLLECTION_NAME = "dbchangelog";
   @InjectMocks
