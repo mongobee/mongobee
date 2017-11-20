@@ -232,7 +232,14 @@ public class Mongobee implements InitializingBean {
       logger.debug("method with MongoTemplate and environment arguments");
 
       return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName), springEnvironment);
-    } else if (changeSetMethod.getParameterTypes().length == 1
+    } else if (changeSetMethod.getParameterTypes().length == 2
+        && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
+        && changeSetMethod.getParameterTypes()[1].equals(ApplicationContext.class)) {
+      logger.debug("method with MongoTemplate and Application context arguments");
+
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName), applicationContext);
+    }
+    else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
       logger.debug("method with DB argument");
 
