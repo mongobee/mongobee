@@ -55,8 +55,7 @@ public class MongobeeTest {
   public void init() throws MongobeeException, UnknownHostException {
     fakeDb = new Fongo("testServer").getDB("mongobeetest");
     fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
-    //mockMongoClient = new MongoClient("127.0.0.1", "27017");
-    mockMongoClient = new MongoClient();
+    mockMongoClient = new Fongo("testServer").getMongo();
     when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
         .thenReturn(fakeMongoDatabase);
     when(dao.getDb()).thenReturn(fakeDb);

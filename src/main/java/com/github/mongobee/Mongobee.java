@@ -15,6 +15,7 @@ import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
@@ -47,6 +48,7 @@ public class Mongobee implements InitializingBean {
   private MongoClient mongoClient;
   private String dbName;
   private Environment springEnvironment;
+  private ApplicationContext applicationContext;
 
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
@@ -305,7 +307,7 @@ public class Mongobee implements InitializingBean {
   /**
    * Feature which enables/disables Mongobee runner execution
    *
-   * @param enabled MOngobee will run only if this option is set to true
+   * @param enabled Mongobee will run only if this option is set to true
    * @return Mongobee object for fluent interface
    */
   public Mongobee setEnabled(boolean enabled) {
@@ -317,10 +319,22 @@ public class Mongobee implements InitializingBean {
    * Set Environment object for Spring Profiles (@Profile) integration
    *
    * @param environment org.springframework.core.env.Environment object to inject
+   * @deprecated please use {@link Mongobee#setSpringApplicationContext} instead
    * @return Mongobee object for fluent interface
    */
+  @Deprecated
   public Mongobee setSpringEnvironment(Environment environment) {
     this.springEnvironment = environment;
+    return this;
+  }
+
+  /**
+   * Set ApplicationContext object for Spring Profiles (@Profile) integration
+   * @param applicationContext
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setSpringApplicationContext(ApplicationContext applicationContext){
+    this.applicationContext = applicationContext;
     return this;
   }
 
