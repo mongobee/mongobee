@@ -2,6 +2,8 @@ package com.github.mongobee.dao;
 
 import static org.springframework.util.StringUtils.hasText;
 
+import java.util.Date;
+
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
+import com.github.mongobee.exception.MongobeeLockException;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -27,13 +30,22 @@ public class ChangeEntryDao {
   private MongoClient mongoClient;
   private ChangeEntryIndexDao indexDao;
   private String changelogCollectionName;
+  private boolean waitForLock;
+  private long changeLogLockWaitTime;
+  private long changeLogLockPollRate;
+  private boolean throwExceptionIfCannotObtainLock;
 
   private LockDao lockDao;
 
-  public ChangeEntryDao(String changelogCollectionName, String lockCollectionName) {
-	this.indexDao = new ChangeEntryIndexDao(changelogCollectionName);
-	this.lockDao = new LockDao(lockCollectionName);
-	this.changelogCollectionName = changelogCollectionName;
+  public ChangeEntryDao(String changelogCollectionName, String lockCollectionName, boolean waitForLock, long changeLogLockWaitTime,
+      long changeLogLockPollRate, boolean throwExceptionIfCannotObtainLock) {
+    this.indexDao = new ChangeEntryIndexDao(changelogCollectionName);
+    this.lockDao = new LockDao(lockCollectionName);
+    this.changelogCollectionName = changelogCollectionName;
+    this.waitForLock = waitForLock;
+    this.changeLogLockWaitTime = changeLogLockWaitTime;
+    this.changeLogLockPollRate = changeLogLockPollRate;
+    this.throwExceptionIfCannotObtainLock = throwExceptionIfCannotObtainLock;
   }
 
   public MongoDatabase getMongoDatabase() {
@@ -77,10 +89,33 @@ public class ChangeEntryDao {
    *
    * @return true if successfully acquired, false otherwise
    * @throws MongobeeConnectionException exception
+   * @throws MongobeeLockException exception
    */
-  public boolean acquireProcessLock() throws MongobeeConnectionException {
+  public boolean acquireProcessLock() throws MongobeeConnectionException, MongobeeLockException {
     verifyDbConnection();
-    return lockDao.acquireLock(getMongoDatabase());
+    boolean acquired = lockDao.acquireLock(getMongoDatabase());
+
+    if (!acquired && waitForLock) {
+      long timeToGiveUp = new Date().getTime() + (changeLogLockWaitTime * 1000 * 60);
+      while (!acquired && new Date().getTime() < timeToGiveUp) {
+        acquired = lockDao.acquireLock(getMongoDatabase());
+        if (!acquired) {
+          logger.info("Waiting for changelog lock....");
+          try {
+            Thread.sleep(changeLogLockPollRate * 1000);
+          } catch (InterruptedException e) {
+            // nothing
+          }
+        }
+      }
+    }
+
+    if (!acquired && throwExceptionIfCannotObtainLock) {
+      logger.info("Mongobee did not acquire process lock. Throwing exception.");
+      throw new MongobeeLockException("Could not acquire process lock");
+    }
+
+    return acquired;
   }
 
   public void releaseProcessLock() throws MongobeeConnectionException {
@@ -155,5 +190,37 @@ public class ChangeEntryDao {
   public void setLockCollectionName(String lockCollectionName) {
 	this.lockDao.setLockCollectionName(lockCollectionName);
   }
-  
+
+  public boolean isWaitForLock() {
+    return waitForLock;
+  }
+
+  public void setWaitForLock(boolean waitForLock) {
+    this.waitForLock = waitForLock;
+  }
+
+  public long getChangeLogLockWaitTime() {
+    return changeLogLockWaitTime;
+  }
+
+  public void setChangeLogLockWaitTime(long changeLogLockWaitTime) {
+    this.changeLogLockWaitTime = changeLogLockWaitTime;
+  }
+
+  public long getChangeLogLockPollRate() {
+    return changeLogLockPollRate;
+  }
+
+  public void setChangeLogLockPollRate(long changeLogLockPollRate) {
+    this.changeLogLockPollRate = changeLogLockPollRate;
+  }
+
+  public boolean isThrowExceptionIfCannotObtainLock() {
+    return throwExceptionIfCannotObtainLock;
+  }
+
+  public void setThrowExceptionIfCannotObtainLock(boolean throwExceptionIfCannotObtainLock) {
+    this.throwExceptionIfCannotObtainLock = throwExceptionIfCannotObtainLock;
+  }
+
 }
