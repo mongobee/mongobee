@@ -254,10 +254,13 @@ public class Mongobee implements InitializingBean {
 
   /**
    * @return true if an execution is in progress, in any process.
-   * @throws MongobeeConnectionException exception
    */
-  public boolean isExecutionInProgress() throws MongobeeConnectionException {
-    return dao.isProccessLockHeld();
+  public boolean isExecutionInProgress() {
+    try {
+      return dao.isProccessLockHeld();
+    } catch (MongobeeConnectionException e) {
+      return false;
+    }
   }
 
   /**
