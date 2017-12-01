@@ -112,8 +112,7 @@ public class ChangeEntryDao {
 
   private void verifyDbConnection() throws MongobeeConnectionException {
     if (getMongoDatabase() == null) {
-      throw new MongobeeConnectionException("Database is not connected. Mongobee has thrown an unexpected error",
-          new NullPointerException());
+      throw new MongobeeConnectionException("Database is not connected. Mongobee has thrown an unexpected error");
     }
   }
 

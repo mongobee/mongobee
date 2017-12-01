@@ -7,6 +7,11 @@ package com.github.mongobee.exception;
  * @since 27/07/2014
  */
 public class MongobeeConnectionException extends MongobeeException {
+
+  public MongobeeConnectionException(String message) {
+    super(message);
+  }
+
   public MongobeeConnectionException(String message, Exception baseException) {
     super(message, baseException);
   }

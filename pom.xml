@@ -31,6 +31,10 @@
             <id>lstolowski</id>
             <name>lstolowski</name>
         </developer>
+        <developer>
+            <id>vbeskrovnov</id>
+            <name>vbeskrovnov</name>
+        </developer>
     </developers>
 
     <distributionManagement>
