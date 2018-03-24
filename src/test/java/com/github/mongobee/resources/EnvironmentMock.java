@@ -56,11 +56,6 @@ public class EnvironmentMock implements Environment {
   }
 
   @Override
-  public <T> Class<T> getPropertyAsClass(String s, Class<T> tClass) {
-    return null;
-  }
-
-  @Override
   public String getRequiredProperty(String s) throws IllegalStateException {
     return null;
   }

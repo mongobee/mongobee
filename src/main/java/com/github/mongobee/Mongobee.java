@@ -51,6 +51,7 @@ public class Mongobee implements InitializingBean {
   private MongoClient mongoClient;
   private String dbName;
   private Environment springEnvironment;
+  private ApplicationContext applicationContext;
 
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
@@ -169,13 +170,13 @@ public class Mongobee implements InitializingBean {
     logger.info("Mongobee has finished his job.");
   }
 
-  private void executeMigration() throws MongobeeConnectionException, MongobeeException {
+  private void executeMigration() throws MongobeeException {
 
     ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
     for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
-      Object changelogInstance = null;
+      Object changelogInstance;
       try {
         changelogInstance = changelogClass.getConstructor().newInstance();
         List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
@@ -228,14 +229,22 @@ public class Mongobee implements InitializingBean {
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName));
+      //return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(new SimpleMongoDbFactory(new MongoClient(), dbName)));
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName));
     } else if (changeSetMethod.getParameterTypes().length == 2
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
         && changeSetMethod.getParameterTypes()[1].equals(Environment.class)) {
       logger.debug("method with MongoTemplate and environment arguments");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName), springEnvironment);
-    } else if (changeSetMethod.getParameterTypes().length == 1
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName), springEnvironment);
+    } else if (changeSetMethod.getParameterTypes().length == 2
+        && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
+        && changeSetMethod.getParameterTypes()[1].equals(ApplicationContext.class)) {
+      logger.debug("method with MongoTemplate and Application context arguments");
+
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName), applicationContext);
+    }
+    else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
       logger.debug("method with DB argument");
 
@@ -310,7 +319,7 @@ public class Mongobee implements InitializingBean {
   /**
    * Feature which enables/disables Mongobee runner execution
    *
-   * @param enabled MOngobee will run only if this option is set to true
+   * @param enabled Mongobee will run only if this option is set to true
    * @return Mongobee object for fluent interface
    */
   public Mongobee setEnabled(boolean enabled) {
@@ -366,10 +375,22 @@ public class Mongobee implements InitializingBean {
    * Set Environment object for Spring Profiles (@Profile) integration
    *
    * @param environment org.springframework.core.env.Environment object to inject
+   * @deprecated please use {@link Mongobee#setSpringApplicationContext} instead
    * @return Mongobee object for fluent interface
    */
+  @Deprecated
   public Mongobee setSpringEnvironment(Environment environment) {
     this.springEnvironment = environment;
+    return this;
+  }
+
+  /**
+   * Set ApplicationContext object for Spring Profiles (@Profile) integration
+   * @param applicationContext
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setSpringApplicationContext(ApplicationContext applicationContext){
+    this.applicationContext = applicationContext;
     return this;
   }
 

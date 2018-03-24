@@ -21,13 +21,13 @@ With Maven
 <dependency>
   <groupId>com.github.mongobee</groupId>
   <artifactId>mongobee</artifactId>
-  <version>0.13</version>
+  <version>0.14</version>
 </dependency>
 ```
 With Gradle
 ```groovy
 compile 'org.javassist:javassist:3.18.2-GA' // workaround for ${javassist.version} placeholder issue*
-compile 'com.github.mongobee:mongobee:0.13'
+compile 'com.github.mongobee:mongobee:0.14'
 ```
 
 ### Usage with Spring
@@ -207,6 +207,44 @@ public Mongobee mongobee(Environment environment) {
   Mongobee runner = new Mongobee(uri);
   runner.setSpringEnvironment(environment)
   //... etc
+}
+```
+
+### Using Spring Application Context
+
+To enable Application Context integration, please set `org.springframework.context.ApplicationContext` to you runner.
+
+```java      
+@Autowired private ApplicationContext applicationContext;
+
+    @Bean
+    public Mongobee mongobee(){
+        Mongobee runner = new Mongobee("mongodb://" + host + ":" + port);
+        runner.setDbName(dbName);
+        runner.setChangeLogsScanPackage(changeLog);
+        runner.setSpringApplicationContext(applicationContext);
+        //...etc
+        return runner;
+    }
+```
+
+_Example 1_: change log example
+
+```java      
+@ChangeLog(order = "1")
+public class UpdatesResource {
+  @ChangeSet(author = "dim777", id = "init", order = "001")
+  public void init(MongoTemplate template, ApplicationContext applicationContext) {
+    UserRepository userRepository = (UserRepository)applicationContext.getBean("userRepository");
+
+    userRepository
+            .saveAll(Flux.just(
+                    User.getBuilder().account("zrb052775").name("D Test 0").password("111222").build(), //
+                    User.getBuilder().account("zrb052776").name("D Test 1").password("111222").build(), //
+                    User.getBuilder().account("zrb052777").name("D Test 2").password("111222").build())) //
+            .then() //
+            .block();
+  }
 }
 ```
 
