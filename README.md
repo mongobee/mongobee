@@ -210,6 +210,39 @@ public Mongobee mongobee(Environment environment) {
 }
 ```
 
+#### Configuring Lock 
+In order to execute the changelogs, Mongobee needs to manage the lock to ensure only one instance executes a changelog at a time.
+By default the lock is reserved 24 hours and, in case the lock is held by another Mongobee instance, will ignore the execution
+and no exception will be sent, unless the parameter throwExceptionIfCannotObtainLock is set to true.
+
+There are 3 parameters to configure:
+
+`lockAcquiredForMinutes` - Number of minutes Mongobee will acquire the lock for. It will refresh the lock when is close to be expired anyway. 
+
+`maxTries` - Max tries when the lock is held by another Mongobee instance.
+
+`maxWaitingForLockMinutes` - Max minutes Mongobee will wait for the lock in every try. 
+
+To configure these parameters there are two methods: setLockConfig and `setLockConfig` and `setLockQuickConfig`. Both will set the
+parameter throwExceptionIfCannotObtainLock to true.
+ ```java      
+ @Bean @Autowired
+ public Mongobee mongobee(Environment environment) {
+   Mongobee runner = new Mongobee(uri);
+   runner.setLockConfig(5, 6, 3);
+ }
+ ```
+ or quick config with 3 minutes for lockAcquiredFor, 3 max tries and 4 minutes for maxWaitingForLock
+ ```java      
+  @Bean @Autowired
+  public Mongobee mongobee(Environment environment) {
+    Mongobee runner = new Mongobee(uri);
+    runner.setLockQuickConfig();
+  }
+  ```
+ 
+ 
+
 ## Known issues
 
 ##### Mongo java driver conflicts
@@ -245,3 +278,16 @@ You can exclude mongo-java-driver from **mongobee**  and use your dependency onl
   </exclusions>
 </dependency>
 ```
+
+
+##### Mongo transaction limitations
+Due to Mongo limitations, there is no way to provide atomicity at ChangelogSet level. So a Changelog could need 
+more than one execution to be finished, as any interruption could happen, leaving the changelog in a inconsistent state.
+If that happen, the next time Mongobee is executed will try to finish the changelog execution, but it could already be half executed.
+
+For this reason, the developer in charge of the changelog's design, should make sure that:
+ 
+- **Changelog is dempotent**: As changelog can be interrupted at any time, it will need to be executed again. 
+- **Changelog is Backward compatible(If high availability is required)**: While the migration process is taking place, the old version of the software is still running. During this time could happen(and probably will) that the old version of the software is dealing with the new version of the data. Could even happen that the data is a mix between old and new version. So the software must still work regardless the status of the database. In case the developer is aware of this and still decides to provide a non-backward-compatible changeSet, he should know it's a detriment to the high availability.
+- **Changelog reduces its execution time in every iteration**: This is more hard to explain. As said a changelog can be interrupted at any time. That means that an specific changelog need to be re-run. In the undesired scenario where the changelog's execution time is grater than the interruption time(culd be Kubernetes initial delay), that changelog won't be ever finished. So the changelog needs to be developed in such a way that every iteration reduces the execution time, so eventually that changelog will finish. 
+- **Changeog's execution time is shorter than interruption time**: In case the previous condition cannot be ensured, could be enough if the changelog's execution time is shorter than the interruption time. This is not ideal as the execution time depends on the machine, but in most case could be enough.

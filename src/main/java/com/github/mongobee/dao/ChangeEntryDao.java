@@ -1,22 +1,14 @@
 package com.github.mongobee.dao;
 
-import static org.springframework.util.StringUtils.hasText;
-
-import java.util.Date;
-
-import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
-import com.github.mongobee.exception.MongobeeLockException;
 import com.mongodb.DB;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author lstolowski
@@ -27,25 +19,12 @@ public class ChangeEntryDao {
 
   private MongoDatabase mongoDatabase;
   private DB db;  // only for Jongo driver compatibility - do not use in other contexts
-  private MongoClient mongoClient;
   private ChangeEntryIndexDao indexDao;
   private String changelogCollectionName;
-  private boolean waitForLock;
-  private long changeLogLockWaitTime;
-  private long changeLogLockPollRate;
-  private boolean throwExceptionIfCannotObtainLock;
 
-  private LockDao lockDao;
-
-  public ChangeEntryDao(String changelogCollectionName, String lockCollectionName, boolean waitForLock, long changeLogLockWaitTime,
-      long changeLogLockPollRate, boolean throwExceptionIfCannotObtainLock) {
+  public ChangeEntryDao(String changelogCollectionName, String lockCollectionName) {
     this.indexDao = new ChangeEntryIndexDao(changelogCollectionName);
-    this.lockDao = new LockDao(lockCollectionName);
     this.changelogCollectionName = changelogCollectionName;
-    this.waitForLock = waitForLock;
-    this.changeLogLockWaitTime = changeLogLockWaitTime;
-    this.changeLogLockPollRate = changeLogLockPollRate;
-    this.throwExceptionIfCannotObtainLock = throwExceptionIfCannotObtainLock;
   }
 
   public MongoDatabase getMongoDatabase() {
@@ -53,79 +32,18 @@ public class ChangeEntryDao {
   }
 
   /**
-   * @deprecated implemented only for Jongo driver compatibility and backward compatibility - do not use in other contexts
    * @return com.mongodb.DB
+   * @deprecated implemented only for Jongo driver compatibility and backward compatibility - do not use in other contexts
    */
   public DB getDb() {
     return db;
   }
 
-  public MongoDatabase connectMongoDb(MongoClient mongo, String dbName) throws MongobeeConfigurationException {
-    if (!hasText(dbName)) {
-      throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
-    } else {
+  public void connectMongoDb(MongoDatabase mongoDatabase, DB db) throws MongobeeConfigurationException {
+    this.db = db; // for Jongo driver and backward compatibility (constructor has required parameter Jongo(DB) )
+    this.mongoDatabase = mongoDatabase;
 
-      this.mongoClient = mongo;
-
-      db = mongo.getDB(dbName); // for Jongo driver and backward compatibility (constructor has required parameter Jongo(DB) )
-      mongoDatabase = mongo.getDatabase(dbName);
-
-      ensureChangeLogCollectionIndex(mongoDatabase.getCollection(changelogCollectionName));
-      initializeLock();
-      return mongoDatabase;
-    }
-  }
-
-  public MongoDatabase connectMongoDb(MongoClientURI mongoClientURI, String dbName)
-      throws MongobeeConfigurationException, MongobeeConnectionException {
-
-    final MongoClient mongoClient = new MongoClient(mongoClientURI);
-    final String database = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
-    return this.connectMongoDb(mongoClient, database);
-  }
-
-  /**
-   * Try to acquire process lock
-   *
-   * @return true if successfully acquired, false otherwise
-   * @throws MongobeeConnectionException exception
-   * @throws MongobeeLockException exception
-   */
-  public boolean acquireProcessLock() throws MongobeeConnectionException, MongobeeLockException {
-    verifyDbConnection();
-    boolean acquired = lockDao.acquireLock(getMongoDatabase());
-
-    if (!acquired && waitForLock) {
-      long timeToGiveUp = new Date().getTime() + (changeLogLockWaitTime * 1000 * 60);
-      while (!acquired && new Date().getTime() < timeToGiveUp) {
-        acquired = lockDao.acquireLock(getMongoDatabase());
-        if (!acquired) {
-          logger.info("Waiting for changelog lock....");
-          try {
-            Thread.sleep(changeLogLockPollRate * 1000);
-          } catch (InterruptedException e) {
-            // nothing
-          }
-        }
-      }
-    }
-
-    if (!acquired && throwExceptionIfCannotObtainLock) {
-      logger.info("Mongobee did not acquire process lock. Throwing exception.");
-      throw new MongobeeLockException("Could not acquire process lock");
-    }
-
-    return acquired;
-  }
-
-  public void releaseProcessLock() throws MongobeeConnectionException {
-    verifyDbConnection();
-    lockDao.releaseLock(getMongoDatabase());
-  }
-
-  public boolean isProccessLockHeld() throws MongobeeConnectionException {
-    verifyDbConnection();
-    return lockDao.isLockHeld(getMongoDatabase());
+    ensureChangeLogCollectionIndex(mongoDatabase.getCollection(changelogCollectionName));
   }
 
   public boolean isNewChange(ChangeEntry changeEntry) throws MongobeeConnectionException {
@@ -165,62 +83,12 @@ public class ChangeEntryDao {
 
   }
 
-  public void close() {
-      this.mongoClient.close();
-  }
-
-  private void initializeLock() {
-    lockDao.intitializeLock(mongoDatabase);
-  }
-
   public void setIndexDao(ChangeEntryIndexDao changeEntryIndexDao) {
     this.indexDao = changeEntryIndexDao;
   }
 
-  /* Visible for testing */
-  void setLockDao(LockDao lockDao) {
-    this.lockDao = lockDao;
-  }
-
   public void setChangelogCollectionName(String changelogCollectionName) {
-	this.indexDao.setChangelogCollectionName(changelogCollectionName);
-	this.changelogCollectionName = changelogCollectionName;
+    this.indexDao.setChangelogCollectionName(changelogCollectionName);
+    this.changelogCollectionName = changelogCollectionName;
   }
-
-  public void setLockCollectionName(String lockCollectionName) {
-	this.lockDao.setLockCollectionName(lockCollectionName);
-  }
-
-  public boolean isWaitForLock() {
-    return waitForLock;
-  }
-
-  public void setWaitForLock(boolean waitForLock) {
-    this.waitForLock = waitForLock;
-  }
-
-  public long getChangeLogLockWaitTime() {
-    return changeLogLockWaitTime;
-  }
-
-  public void setChangeLogLockWaitTime(long changeLogLockWaitTime) {
-    this.changeLogLockWaitTime = changeLogLockWaitTime;
-  }
-
-  public long getChangeLogLockPollRate() {
-    return changeLogLockPollRate;
-  }
-
-  public void setChangeLogLockPollRate(long changeLogLockPollRate) {
-    this.changeLogLockPollRate = changeLogLockPollRate;
-  }
-
-  public boolean isThrowExceptionIfCannotObtainLock() {
-    return throwExceptionIfCannotObtainLock;
-  }
-
-  public void setThrowExceptionIfCannotObtainLock(boolean throwExceptionIfCannotObtainLock) {
-    this.throwExceptionIfCannotObtainLock = throwExceptionIfCannotObtainLock;
-  }
-
 }
