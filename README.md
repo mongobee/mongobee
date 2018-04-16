@@ -281,6 +281,7 @@ You can exclude mongo-java-driver from **mongobee**  and use your dependency onl
 
 
 ##### Mongo transaction limitations
+
 Due to Mongo limitations, there is no way to provide atomicity at ChangelogSet level. So a Changelog could need 
 more than one execution to be finished, as any interruption could happen, leaving the changelog in a inconsistent state.
 If that happen, the next time Mongobee is executed will try to finish the changelog execution, but it could already be half executed.
