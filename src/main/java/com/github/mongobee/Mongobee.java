@@ -16,6 +16,21 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import static com.mongodb.ServerAddress.defaultHost;
+import static com.mongodb.ServerAddress.defaultPort;
+import static org.springframework.util.StringUtils.hasText;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import org.jongo.Jongo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangeSetException;
@@ -39,6 +54,10 @@ public class Mongobee implements InitializingBean {
 
   private static final String DEFAULT_CHANGELOG_COLLECTION_NAME = "dbchangelog";
   private static final String DEFAULT_LOCK_COLLECTION_NAME = "mongobeelock";
+  private static final boolean DEFAULT_WAIT_FOR_LOCK = false;
+  private static final long DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME = 5L;
+  private static final long DEFAULT_CHANGE_LOG_LOCK_POLL_RATE = 10L;
+  private static final boolean DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK = false;
 
   private ChangeEntryDao dao;
 
@@ -74,7 +93,8 @@ public class Mongobee implements InitializingBean {
   public Mongobee(MongoClientURI mongoClientURI) {
     this.mongoClientURI = mongoClientURI;
     this.setDbName(mongoClientURI.getDatabase());
-    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME);
+    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
+        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
   }
 
   /**
@@ -87,7 +107,8 @@ public class Mongobee implements InitializingBean {
    */
   public Mongobee(MongoClient mongoClient) {
     this.mongoClient = mongoClient;
-    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME);
+    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
+        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
   }
 
   /**
@@ -319,6 +340,50 @@ public class Mongobee implements InitializingBean {
    */
   public Mongobee setEnabled(boolean enabled) {
     this.enabled = enabled;
+    return this;
+  }
+
+  /**
+   * Feature which enables/disables waiting for lock if it's already obtained
+   *
+   * @param waitForLock Mongobee will be waiting for lock if it's already obtained if this option is set to true
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setWaitForLock(boolean waitForLock) {
+    this.dao.setWaitForLock(waitForLock);
+    return this;
+  }
+
+  /**
+   * Waiting time for acquiring lock if waitForLock is true
+   *
+   * @param changeLogLockWaitTime Waiting time in minutes for acquiring lock
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setChangeLogLockWaitTime(long changeLogLockWaitTime) {
+    this.dao.setChangeLogLockWaitTime(changeLogLockWaitTime);
+    return this;
+  }
+
+  /**
+   * Poll rate for acquiring lock if waitForLock is true
+   *
+   * @param changeLogLockPollRate Poll rate in seconds for acquiring lock
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setChangeLogLockPollRate(long changeLogLockPollRate) {
+    this.dao.setChangeLogLockPollRate(changeLogLockPollRate);
+    return this;
+  }
+
+  /**
+   * Feature which enables/disables throwing MongobeeLockException if Mongobee can not obtain lock
+   *
+   * @param throwExceptionIfCannotObtainLock Mongobee will throw MongobeeLockException if lock can not be obtained
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setThrowExceptionIfCannotObtainLock(boolean throwExceptionIfCannotObtainLock) {
+    this.dao.setThrowExceptionIfCannotObtainLock(throwExceptionIfCannotObtainLock);
     return this;
   }
 
