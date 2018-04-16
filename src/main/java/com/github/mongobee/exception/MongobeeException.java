@@ -11,4 +11,8 @@ public class MongobeeException extends Exception {
   public MongobeeException(String message, Throwable cause) {
     super(message, cause);
   }
+
+  public MongobeeException(Exception ex) {
+    super(ex);
+  }
 }
