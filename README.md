@@ -245,7 +245,7 @@ parameter throwExceptionIfCannotObtainLock to true.
 
 ## Known issues
 
-##### Mongo java driver conflicts
+#### Mongo java driver conflicts
 
 **mongobee** depends on `mongo-java-driver`. If your application has mongo-java-driver dependency too, there could be a library conflicts in some cases.
 
@@ -280,7 +280,7 @@ You can exclude mongo-java-driver from **mongobee**  and use your dependency onl
 ```
 
 
-##### Mongo transaction limitations
+#### Mongo transaction limitations
 
 Due to Mongo limitations, there is no way to provide atomicity at ChangelogSet level. So a Changelog could need 
 more than one execution to be finished, as any interruption could happen, leaving the changelog in a inconsistent state.
