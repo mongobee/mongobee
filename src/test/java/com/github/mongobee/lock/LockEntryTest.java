@@ -22,7 +22,7 @@ public class LockEntryTest {
 
   @Test
   public void toStringTest() {
-    assertEquals("LockEntry{key='KEY', status='STATUS', owner='OWNER', expiresAt=Thu Jan 01 01:00:00 GMT 1970}",
+    assertEquals("LockEntry{key='KEY', status='STATUS', owner='OWNER', expiresAt=" + new Date(1).toString() + "}",
         new LockEntry("KEY","STATUS","OWNER", new Date(1)).toString());
   }
 
