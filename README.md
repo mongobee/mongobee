@@ -172,6 +172,22 @@ public void someChange5(MongoTemplate mongoTemplate, Environment environment) {
 }
 ```
 
+### Using Spring's ApplicationContext
+**mongobee** allows you to use Spring's `org.springframework.context.ApplicationContext`. Use setter to inject `ApplicationContext` into runner.
+For example:
+```java
+@Autowired
+private ApplicationContext appContext;
+
+@Bean
+public Mongobee mongobee(){
+  Mongobee runner = new Mongobee("mongodb://YOUR_DB_HOST:27017/DB_NAME");
+  runner.setSpringApplicationContext(appContext);
+
+  return runner;
+}
+```
+
 ### Using Spring profiles
      
 **mongobee** accepts Spring's `org.springframework.context.annotation.Profile` annotation. If a change log or change set class is annotated  with `@Profile`, 
@@ -201,7 +217,7 @@ public class ChangelogForTestEnv{
       
 To enable the `@Profile` integration, please inject `org.springframework.core.env.Environment` to you runner.
 
-```java      
+```java
 @Bean @Autowired
 public Mongobee mongobee(Environment environment) {
   Mongobee runner = new Mongobee(uri);

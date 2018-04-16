@@ -12,6 +12,22 @@ import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
+import static com.mongodb.ServerAddress.defaultHost;
+import static com.mongodb.ServerAddress.defaultPort;
+import static org.springframework.util.StringUtils.hasText;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import org.jongo.Jongo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
@@ -51,6 +67,7 @@ public class Mongobee implements InitializingBean {
   private MongoClient mongoClient;
   private String dbName;
   private Environment springEnvironment;
+  private ApplicationContext applicationContext;
 
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
@@ -169,13 +186,13 @@ public class Mongobee implements InitializingBean {
     logger.info("Mongobee has finished his job.");
   }
 
-  private void executeMigration() throws MongobeeConnectionException, MongobeeException {
+  private void executeMigration() throws MongobeeException {
 
     ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
     for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
-      Object changelogInstance = null;
+      Object changelogInstance;
       try {
         changelogInstance = changelogClass.getConstructor().newInstance();
         List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
@@ -235,7 +252,15 @@ public class Mongobee implements InitializingBean {
       logger.debug("method with MongoTemplate and environment arguments");
 
       return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName), springEnvironment);
-    } else if (changeSetMethod.getParameterTypes().length == 1
+		} else if (changeSetMethod.getParameterTypes().length == 2
+		        && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
+		        && changeSetMethod.getParameterTypes()[1].equals(ApplicationContext.class)) {
+			logger.debug("method with MongoTemplate and Spring ApplicationContext arguments");
+
+			return changeSetMethod.invoke(changeLogInstance,
+			        mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName),
+			        applicationContext);
+		} else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
       logger.debug("method with DB argument");
 
@@ -370,6 +395,12 @@ public class Mongobee implements InitializingBean {
    */
   public Mongobee setSpringEnvironment(Environment environment) {
     this.springEnvironment = environment;
+    return this;
+  }
+
+  public Mongobee setSpringApplicationContext(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext;
+
     return this;
   }
 
