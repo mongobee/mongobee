@@ -7,4 +7,8 @@ public class MongobeeLockException extends MongobeeException {
   public MongobeeLockException(String message) {
     super(message);
   }
+
+  public MongobeeLockException(Exception ex) {
+    super(ex);
+  }
 }

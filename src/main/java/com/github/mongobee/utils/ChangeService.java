@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,26 +30,37 @@ import static java.util.Arrays.asList;
 public class ChangeService {
   private static final String DEFAULT_PROFILE = "default";
 
-  private final String changeLogsBasePackage;
-  private final List<String> activeProfiles;
+  private String changeLogsBasePackage;
+  private List<String> activeProfiles;
 
-  public ChangeService(String changeLogsBasePackage) {
-    this(changeLogsBasePackage, null);
+  /**
+   * <p>Indicates the package to scan changeLogs</p>
+   *
+   * @param changeLogsBasePackage path of the package
+   */
+  //Implementation note: This has been added, replacing constructor, to be able to inject this service as dependency
+  public void setChangeLogsBasePackage(String changeLogsBasePackage) {
+    this.changeLogsBasePackage = changeLogsBasePackage;
   }
 
-  public ChangeService(String changeLogsBasePackage, Environment environment) {
-    this.changeLogsBasePackage = changeLogsBasePackage;
-
-    if (environment != null && environment.getActiveProfiles() != null && environment.getActiveProfiles().length> 0) {
+  /**
+   * <p>Spring environment environment</p>
+   *
+   * @param environment environment
+   */
+  //Implementation note: This has been added, replacing constructor, to be able to inject this service as dependency
+  public void setEnvironment(Environment environment) {
+    if (environment != null && environment.getActiveProfiles() != null && environment.getActiveProfiles().length > 0) {
       this.activeProfiles = asList(environment.getActiveProfiles());
     } else {
       this.activeProfiles = asList(DEFAULT_PROFILE);
     }
   }
 
-  public List<Class<?>> fetchChangeLogs(){
+  public List<Class<?>> fetchChangeLogs() {
     Reflections reflections = new Reflections(changeLogsBasePackage);
-    Set<Class<?>> changeLogs = reflections.getTypesAnnotatedWith(ChangeLog.class); // TODO remove dependency, do own method
+    Set<Class<?>> changeLogs =
+        reflections.getTypesAnnotatedWith(ChangeLog.class); // TODO remove dependency, do own method
     List<Class<?>> filteredChangeLogs = (List<Class<?>>) filterByActiveProfiles(changeLogs);
 
     Collections.sort(filteredChangeLogs, new ChangeLogComparator());
@@ -65,8 +77,8 @@ public class ChangeService {
     return filteredChangeSets;
   }
 
-  public boolean isRunAlwaysChangeSet(Method changesetMethod){
-    if (changesetMethod.isAnnotationPresent(ChangeSet.class)){
+  public boolean isRunAlwaysChangeSet(Method changesetMethod) {
+    if (changesetMethod.isAnnotationPresent(ChangeSet.class)) {
       ChangeSet annotation = changesetMethod.getAnnotation(ChangeSet.class);
       return annotation.runAlways();
     } else {
@@ -74,10 +86,10 @@ public class ChangeService {
     }
   }
 
-  public ChangeEntry createChangeEntry(Method changesetMethod){
-    if (changesetMethod.isAnnotationPresent(ChangeSet.class)){
+  public ChangeEntry createChangeEntry(Method changesetMethod) {
+    if (changesetMethod.isAnnotationPresent(ChangeSet.class)) {
       ChangeSet annotation = changesetMethod.getAnnotation(ChangeSet.class);
-  
+
       return new ChangeEntry(
           annotation.id(),
           annotation.author(),
@@ -87,6 +99,22 @@ public class ChangeService {
     } else {
       return null;
     }
+  }
+
+  /**
+   * <p>It creates an instance from a given Class.</p>
+   *
+   * @param changelogClass
+   * @param <T>
+   * @return
+   * @throws NoSuchMethodException
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   * @throws InstantiationException
+   */
+  //Implementation note: It has been added as a more flexible way to get the changeLog objects and make easier testing.
+  public <T> T createInstance(Class<T> changelogClass) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return changelogClass.getConstructor().newInstance();
   }
 
   private boolean matchesActiveSpringProfile(AnnotatedElement element) {
@@ -112,8 +140,8 @@ public class ChangeService {
   private List<?> filterByActiveProfiles(Collection<? extends AnnotatedElement> annotated) {
     List<AnnotatedElement> filtered = new ArrayList<>();
     for (AnnotatedElement element : annotated) {
-      if (matchesActiveSpringProfile(element)){
-        filtered.add( element);
+      if (matchesActiveSpringProfile(element)) {
+        filtered.add(element);
       }
     }
     return filtered;
