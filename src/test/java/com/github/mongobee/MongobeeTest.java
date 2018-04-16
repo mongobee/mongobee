@@ -1,69 +1,42 @@
 package com.github.mongobee;
 
-import com.github.fakemongo.Fongo;
 import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.dao.ChangeEntryDao;
-import com.github.mongobee.dao.ChangeEntryIndexDao;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeException;
+import com.github.mongobee.exception.MongobeeLockException;
 import com.github.mongobee.test.changelogs.MongobeeTestResource;
+import com.github.mongobee.test.proxy.ProxiesMongobeeTestResource;
+import com.github.mongobee.utils.TimeUtils;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.jongo.Jongo;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.internal.verification.Times;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MongobeeTest {
-
-  private static final String CHANGELOG_COLLECTION_NAME = "dbchangelog";
-  @InjectMocks
-  private Mongobee runner = new Mongobee();
-
-  @Mock
-  private ChangeEntryDao dao;
-
-  @Mock
-  private ChangeEntryIndexDao indexDao;
-
-  private DB fakeDb;
-  private MongoDatabase fakeMongoDatabase;
-
-  @Before
-  public void init() throws MongobeeException, UnknownHostException {
-    fakeDb = new Fongo("testServer").getDB("mongobeetest");
-    fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
-    when(dao.connectMongoDb(any(MongoClientURI.class), anyString()))
-        .thenReturn(fakeMongoDatabase);
-    when(dao.getDb()).thenReturn(fakeDb);
-    when(dao.getMongoDatabase()).thenReturn(fakeMongoDatabase);
-    doCallRealMethod().when(dao).save(any(ChangeEntry.class));
-    doCallRealMethod().when(dao).setChangelogCollectionName(anyString());
-    doCallRealMethod().when(dao).setIndexDao(any(ChangeEntryIndexDao.class));
-    dao.setIndexDao(indexDao);
-    dao.setChangelogCollectionName(CHANGELOG_COLLECTION_NAME);
-
-    runner.setDbName("mongobeetest");
-    runner.setEnabled(true);
-    runner.setChangeLogsScanPackage(MongobeeTestResource.class.getPackage().getName());
-  }
+public class MongobeeTest extends MongobeeTestBase {
 
   @Test(expected = MongobeeConfigurationException.class)
   public void shouldThrowAnExceptionIfNoDbNameSet() throws Exception {
@@ -76,7 +49,6 @@ public class MongobeeTest {
   @Test
   public void shouldExecuteAllChangeSets() throws Exception {
     // given
-    when(dao.acquireProcessLock()).thenReturn(true);
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
 
     // when
@@ -128,7 +100,6 @@ public class MongobeeTest {
   public void shouldUsePreConfiguredMongoTemplate() throws Exception {
     MongoTemplate mt = mock(MongoTemplate.class);
     when(mt.getCollectionNames()).thenReturn(Collections.EMPTY_SET);
-    when(dao.acquireProcessLock()).thenReturn(true);
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
     runner.setMongoTemplate(mt);
     runner.afterPropertiesSet();
@@ -137,8 +108,9 @@ public class MongobeeTest {
 
   @Test
   public void shouldUsePreConfiguredJongo() throws Exception {
+    setJongoField(null);
     Jongo jongo = mock(Jongo.class);
-    when(dao.acquireProcessLock()).thenReturn(true);
+    when(proxyFactory.createProxyFromOriginal(jongo)).thenReturn(jongo);
     when(jongo.getDatabase()).thenReturn(null);
     runner.setJongo(jongo);
     runner.afterPropertiesSet();
@@ -147,8 +119,6 @@ public class MongobeeTest {
 
   @Test
   public void shouldExecuteProcessWhenLockAcquired() throws Exception {
-    // given
-    when(dao.acquireProcessLock()).thenReturn(true);
 
     // when
     runner.execute();
@@ -159,20 +129,17 @@ public class MongobeeTest {
 
   @Test
   public void shouldReleaseLockAfterWhenLockAcquired() throws Exception {
-    // given
-    when(dao.acquireProcessLock()).thenReturn(true);
-
     // when
     runner.execute();
 
     // then
-    verify(dao).releaseProcessLock();
+    verify(lockChecker).releaseLockDefault();
   }
 
   @Test
   public void shouldNotExecuteProcessWhenLockNotAcquired() throws Exception {
     // given
-    when(dao.acquireProcessLock()).thenReturn(false);
+    doThrow(new MongobeeLockException("")).when(lockChecker).acquireLockDefault();
 
     // when
     runner.execute();
@@ -181,10 +148,22 @@ public class MongobeeTest {
     verify(dao, never()).isNewChange(any(ChangeEntry.class));
   }
 
+  @Test(expected = MongobeeException.class)
+  public void shouldNotExecuteProcessAndThrowsExceptionWhenLockNotAcquiredAndFlagThrowExceptionIfLockNotAcquiredTrue()
+      throws Exception {
+    // given
+    doThrow(new MongobeeLockException("")).when(lockChecker).acquireLockDefault();
+    runner.setThrowExceptionIfCannotObtainLock(true);
+
+    // when
+    runner.execute();
+
+  }
+
   @Test
   public void shouldReturnExecutionStatusBasedOnDao() throws Exception {
     // given
-    when(dao.isProccessLockHeld()).thenReturn(true);
+    when(lockChecker.isLockHeld()).thenReturn(true);
 
     boolean inProgress = runner.isExecutionInProgress();
 
@@ -199,7 +178,6 @@ public class MongobeeTest {
     // given
     // would be nicer with a mock for the whole execution, but this would mean breaking out to separate class..
     // this should be "good enough"
-    when(dao.acquireProcessLock()).thenReturn(true);
     when(dao.isNewChange(any(ChangeEntry.class))).thenThrow(RuntimeException.class);
 
     // when
@@ -210,15 +188,124 @@ public class MongobeeTest {
       // do nothing
     }
     // then
-    verify(dao).releaseProcessLock();
-
+    verify(lockChecker).releaseLockDefault();
   }
 
-  @After
-  public void cleanUp() {
-    runner.setMongoTemplate(null);
-    runner.setJongo(null);
-    fakeDb.dropDatabase();
+  @Test
+  public void shouldCallLockCheckerWhenSetLockMaxWait() {
+    //when
+    runner.setChangeLogLockWaitTime(100);
+
+    //then
+    verify(lockChecker).setLockMaxWaitMillis(new TimeUtils().minutesToMillis(100));
+  }
+
+  @Test
+  public void shouldCallLockCheckerMethodsWhenSetLockConfig() {
+    //given
+    when(lockChecker.setLockAcquiredForMillis(anyLong())).thenReturn(lockChecker);
+    when(lockChecker.setLockMaxWaitMillis(anyLong())).thenReturn(lockChecker);
+    when(lockChecker.setLockMaxTries(anyInt())).thenReturn(lockChecker);
+    //when
+    runner.setLockConfig(3, 4, 5);
+
+    //then
+    verify(lockChecker, new Times(1)).setLockAcquiredForMillis(new TimeUtils().minutesToMillis(3));
+    verify(lockChecker, new Times(1)).setLockMaxWaitMillis(new TimeUtils().minutesToMillis(4));
+    verify(lockChecker, new Times(1)).setLockMaxTries(5);
+    verify(runner, new Times(1)).setThrowExceptionIfCannotObtainLock(true);
+  }
+
+  @Test
+  public void shouldCallLockCheckerWithDefaultConfigMethodsWhenSetLockQuickConfig() {
+    //given
+    when(lockChecker.setLockAcquiredForMillis(anyLong())).thenReturn(lockChecker);
+    when(lockChecker.setLockMaxWaitMillis(anyLong())).thenReturn(lockChecker);
+    when(lockChecker.setLockMaxTries(anyInt())).thenReturn(lockChecker);
+    //when
+    runner.setLockQuickConfig();
+
+    //then
+    verify(lockChecker, new Times(1)).setLockAcquiredForMillis(new TimeUtils().minutesToMillis(3));
+    verify(lockChecker, new Times(1)).setLockMaxWaitMillis(new TimeUtils().minutesToMillis(4));
+    verify(lockChecker, new Times(1)).setLockMaxTries(3);
+    verify(runner, new Times(1)).setThrowExceptionIfCannotObtainLock(true);
+  }
+
+
+  @Test
+  public void callMongoClientWhenClosing() {
+    //when
+    runner.close();
+
+    //then
+    verify(runner.getMongoClient()).close();
+  }
+
+  @Test
+  public void shouldCallLockCheckerWhenSetWaitForLockTrue() {
+    //when
+    runner.setWaitForLock(true);
+
+    //then
+    verify(lockChecker, new Times(1)).setLockMaxTries(2);
+  }
+
+
+  @Test
+  public void shouldCallLockCheckerWhenSetWaitForLockFalse() {
+    //when
+    runner.setWaitForLock(false);
+
+    //then
+    verify(lockChecker, new Times(1)).setLockMaxTries(1);
+  }
+
+  @Test
+  public void shouldCallLockRepositoryWhenSetLockCollectionName() {
+    //when
+    runner.setLockCollectionName("LOCK_COLLECTION_NAME");
+
+    //then
+    verify(lockRepository, new Times(1)).setLockCollectionName("LOCK_COLLECTION_NAME");
+  }
+
+  @Test
+  public void shouldInjectProxyToChangeEntry() throws Exception {
+
+    ProxiesMongobeeTestResource changeLog = mock(ProxiesMongobeeTestResource.class);
+
+    when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
+    doReturn(Collections.singletonList(ProxiesMongobeeTestResource.class))
+        .when(changeService).fetchChangeLogs();
+    doReturn(changeLog).when(changeService).createInstance(any(Class.class));
+    doReturn(Arrays.asList(
+        ProxiesMongobeeTestResource.class.getDeclaredMethod("testInsertWithDB", DB.class),
+        ProxiesMongobeeTestResource.class.getDeclaredMethod("testJongo", Jongo.class),
+        ProxiesMongobeeTestResource.class.getDeclaredMethod("testMongoDatabase", MongoDatabase.class)))
+        .when(changeService).fetchChangeSets(any(Class.class));
+
+    when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
+    // given
+    when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
+    when(proxyFactory.createProxyFromOriginal(fakeMongoDatabase)).thenReturn(fakeMongoDatabase);
+
+    DB proxyDb = mock(DB.class);
+    when(proxyFactory.createProxyFromOriginal(fakeDb)).thenReturn(proxyDb);
+
+    Jongo proxyJongo = mock(Jongo.class);
+    when(proxyFactory.createProxyFromOriginal(jongo)).thenReturn(proxyJongo);
+
+    MongoDatabase proxyMongoDatabase = mock(MongoDatabase.class);
+    when(proxyFactory.createProxyFromOriginal(fakeMongoDatabase)).thenReturn(proxyMongoDatabase);
+
+    // when
+    runner.execute();
+
+    //then
+    verify(changeLog, new Times(1)).testInsertWithDB(proxyDb);
+    verify(changeLog, new Times(1)).testJongo(proxyJongo);
+    verify(changeLog, new Times(1)).testMongoDatabase(proxyMongoDatabase);
   }
 
 }
