@@ -172,6 +172,7 @@ public class Mongobee implements InitializingBean {
 
   public Mongobee(String mongoURI) {
     this(new MongoClientURI(mongoURI));
+    initDependencies();
   }
 
   /**
