@@ -50,6 +50,7 @@ public class Mongobee implements InitializingBean {
   private MongoClientURI mongoClientURI;
   private MongoClient mongoClient;
   private String dbName;
+  private String limit;
   private Environment springEnvironment;
 
   private MongoTemplate mongoTemplate;
@@ -173,8 +174,7 @@ public class Mongobee implements InitializingBean {
 
     ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
-    for (Class<?> changelogClass : service.fetchChangeLogs()) {
-
+    for (Class<?> changelogClass : service.fetchChangeLogs(this.limit)) {
       Object changelogInstance = null;
       try {
         changelogInstance = changelogClass.getConstructor().newInstance();
@@ -426,5 +426,13 @@ public class Mongobee implements InitializingBean {
    */
   public void close() {
     dao.close();
+  }
+
+  public String getLimit() {
+    return limit;
+  }
+
+  public void setLimit(String limit) {
+    this.limit = limit;
   }
 }

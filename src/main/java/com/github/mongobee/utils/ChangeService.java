@@ -46,10 +46,11 @@ public class ChangeService {
     }
   }
 
-  public List<Class<?>> fetchChangeLogs(){
+  public List<Class<?>> fetchChangeLogs(String limit){
     Reflections reflections = new Reflections(changeLogsBasePackage);
     Set<Class<?>> changeLogs = reflections.getTypesAnnotatedWith(ChangeLog.class); // TODO remove dependency, do own method
     List<Class<?>> filteredChangeLogs = (List<Class<?>>) filterByActiveProfiles(changeLogs);
+    filteredChangeLogs = (List<Class<?>>) filterByLimit(filteredChangeLogs, limit);
 
     Collections.sort(filteredChangeLogs, new ChangeLogComparator());
 
@@ -113,6 +114,18 @@ public class ChangeService {
     List<AnnotatedElement> filtered = new ArrayList<>();
     for (AnnotatedElement element : annotated) {
       if (matchesActiveSpringProfile(element)){
+        filtered.add( element);
+      }
+    }
+    return filtered;
+  }
+  private List<?> filterByLimit(List<? extends AnnotatedElement> annotated, String limit) {
+    if ( limit == null) {
+      return annotated;
+    }
+    List<AnnotatedElement> filtered = new ArrayList<>();
+    for (AnnotatedElement element : annotated) {
+      if (element.getAnnotation(ChangeLog.class).order().compareTo(limit) >= 0){
         filtered.add( element);
       }
     }
