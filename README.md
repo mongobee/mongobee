@@ -32,8 +32,8 @@ compile 'com.github.mongobee:mongobee:0.13'
 
 ### Usage with Spring
 
-You need to instantiate Mongobee object and provide some configuration.
-If you use Spring can be instantiated as a singleton bean in the Spring context. 
+You need to instantiate mongobee object and provide some configuration.
+If you use Spring, mongobee can be instantiated as a singleton bean in the Spring context. 
 In this case the migration process will be executed automatically on startup.
 
 ```java
