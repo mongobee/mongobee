@@ -99,16 +99,16 @@ public class MongobeeTest extends MongobeeTestBase {
   @Test
   public void shouldUsePreConfiguredMongoTemplate() throws Exception {
     MongoTemplate mt = mock(MongoTemplate.class);
-    when(mt.getCollectionNames()).thenReturn(Collections.EMPTY_SET);
+    when(mt.getCollectionNames()).thenReturn(Collections.<String>emptySet());
     when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
     runner.setMongoTemplate(mt);
+    when(proxyFactory.createProxyFromOriginal(mt)).thenReturn(mt);
     runner.afterPropertiesSet();
     verify(mt).getCollectionNames();
   }
 
   @Test
   public void shouldUsePreConfiguredJongo() throws Exception {
-    setJongoField(null);
     Jongo jongo = mock(Jongo.class);
     when(proxyFactory.createProxyFromOriginal(jongo)).thenReturn(jongo);
     when(jongo.getDatabase()).thenReturn(null);

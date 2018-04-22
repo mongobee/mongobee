@@ -50,10 +50,11 @@ public class Mongobee implements InitializingBean {
   private static final long DEFAULT_LOCK_MAX_WAIT_MILLIS = 2 * 60 * 1000;//2 minutes by default
   private static final int DEFAULT_LOCK_MAX_TRIES = 1;//1 by default
   private static final Set<String>
-      PROXY_CREATOR_METHODS = new HashSet<>(Arrays.asList("getCollection", "getCollectionFromString", "getDatabase", "toString"));
+      PROXY_CREATOR_METHODS =
+      new HashSet<>(Arrays.asList("getCollection", "getCollectionFromString", "getDatabase", "toString"));
   private static final Set<String>
-      UNCHECKED_PROXY_METHODS = new HashSet<>(Arrays.asList("getCollection", "getCollectionFromString", "getDatabase", "toString"));
-
+      UNCHECKED_PROXY_METHODS =
+      new HashSet<>(Arrays.asList("getCollection", "getCollectionFromString", "getDatabase", "toString"));
 
   private TimeUtils timeUtils;
   private ProxyFactory proxyFactory;
@@ -202,7 +203,7 @@ public class Mongobee implements InitializingBean {
       executeMigration();
     } catch (MongobeeLockException lockEx) {
 
-      if(throwExceptionIfCannotObtainLock) {
+      if (throwExceptionIfCannotObtainLock) {
         logger.error(lockEx.getMessage());
         throw new MongobeeException(lockEx.getMessage());
       }
@@ -367,19 +368,19 @@ public class Mongobee implements InitializingBean {
   /**
    * <p>Feature which enables/disables waiting for lock if it's already acquired by another process</p>
    * <p>It is disable if setLockMaxTries is called with a number different than 1</p>
-   *
+   * <p>
    * <p>If waitForLock is false, will set maxTries to 1. If it's true and waitForLock is less than 2, it will be
    * set to 2</p>
    *
-   * @deprecated use setLockConfig or setLockQuickConfig
    * @param waitForLock Mongobee will wait for lock when it's already obtained, if this option is set to true.
    * @return Mongobee object for fluent interface
+   * @deprecated use setLockConfig or setLockQuickConfig
    */
   @Deprecated
   public Mongobee setWaitForLock(boolean waitForLock) {
-    if(!waitForLock) {
+    if (!waitForLock) {
       this.lockChecker.setLockMaxTries(1);
-    } else if (this.lockChecker.getLockMaxTries() <= 1){
+    } else if (this.lockChecker.getLockMaxTries() <= 1) {
       this.lockChecker.setLockMaxTries(2);
     }
     return this;
@@ -388,9 +389,9 @@ public class Mongobee implements InitializingBean {
   /**
    * Waiting time for acquiring lock if maxTries is greater than 1
    *
-   * @deprecated use setLockConfig or setLockQuickConfig
    * @param changeLogLockWaitTime Waiting time in minutes for acquiring lock
    * @return Mongobee object for fluent interface
+   * @deprecated use setLockConfig or setLockQuickConfig
    */
   @Deprecated
   public Mongobee setChangeLogLockWaitTime(long changeLogLockWaitTime) {
@@ -401,9 +402,9 @@ public class Mongobee implements InitializingBean {
   /**
    * Poll rate for acquiring lock if waitForLock is true
    *
-   * @deprecated use setLockConfig or setLockQuickConfig
    * @param changeLogLockPollRate Poll rate in seconds for acquiring lock
    * @return Mongobee object for fluent interface
+   * @deprecated use setLockConfig or setLockQuickConfig
    */
   public Mongobee setChangeLogLockPollRate(long changeLogLockPollRate) {
     return this;
@@ -422,9 +423,10 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Set up the lock with minimal configuration. This implies Mongobee will throw an exception if cannot obtains the lock.
-   * @param lockAcquiredForMinutes Acquired time in minutes
+   *
+   * @param lockAcquiredForMinutes   Acquired time in minutes
    * @param maxWaitingForLockMinutes max time in minutes to wait for the lock in each try.
-   * @param maxTries number of tries
+   * @param maxTries                 number of tries
    * @return Mongobee object for fluent interface
    */
   public Mongobee setLockConfig(long lockAcquiredForMinutes, long maxWaitingForLockMinutes, int maxTries) {
@@ -438,6 +440,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Set up the lock with default configuration to wait for it and through an exception when cannot obtain it.
+   *
    * @return Mongobee object for fluent interface
    */
   public Mongobee setLockQuickConfig() {
@@ -480,7 +483,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Overwrites a default mongobee changelog collection hardcoded in DEFAULT_CHANGELOG_COLLECTION_NAME.
-   *
+   * <p>
    * CAUTION! Use this method carefully - when changing the name on a existing system,
    * your changelogs will be executed again on your MongoDB instance
    *
@@ -538,8 +541,9 @@ public class Mongobee implements InitializingBean {
     this.mongoDatabaseProxy = proxyFactory.createProxyFromOriginal(mongoDatabase);
     this.dbProxy = proxyFactory.createProxyFromOriginal(db);
     this.jongoProxy = proxyFactory.createProxyFromOriginal(jongo != null ? jongo : new Jongo(db));
-    this.mongoTemplateProxy =  proxyFactory.createProxyFromOriginal(mongoTemplate != null ? mongoTemplate : new MongoTemplate(
-        db.getMongo(), dbName));
+    this.mongoTemplateProxy =
+        proxyFactory.createProxyFromOriginal(mongoTemplate != null ? mongoTemplate : new MongoTemplate(
+            db.getMongo(), dbName));
   }
 
 }

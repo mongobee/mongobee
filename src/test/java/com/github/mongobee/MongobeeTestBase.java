@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.lang.reflect.Field;
 
@@ -63,6 +64,7 @@ public class MongobeeTestBase {
 
   @Spy
   protected ChangeService changeService;
+  private String dbName = "dbName";
 
   public static MongoClient getFakeMongoClient(MongoDatabase fakeMongoDatabase, DB fakeDb) {
     MongoClient mongoClient = mock(MongoClient.class);
@@ -73,8 +75,8 @@ public class MongobeeTestBase {
 
   @Before
   public void init() throws Exception {
-    fakeDb = new Fongo("testServer").getDB("mongobeetest");
-    fakeMongoDatabase = new Fongo("testServer").getDatabase("mongobeetest");
+    fakeDb = new Fongo("testServer").getDB("dbName");
+    fakeMongoDatabase = new Fongo("testServer").getDatabase("dbName");
     jongo = new Jongo(fakeDb);
     when(dao.getDb()).thenReturn(fakeDb);
     when(dao.getMongoDatabase()).thenReturn(fakeMongoDatabase);
@@ -85,24 +87,22 @@ public class MongobeeTestBase {
     dao.setIndexDao(indexDao);
     dao.setChangelogCollectionName(CHANGELOG_COLLECTION_NAME);
 
-    setJongoField(jongo);
+    MongoClient fakeMongoClient = MongobeeTestBase.getFakeMongoClient(fakeMongoDatabase, fakeDb);
+
+    MongoTemplate mongoTemplate = new MongoTemplate(fakeMongoClient, dbName);
     when(proxyFactory.createProxyFromOriginal(jongo)).thenReturn(jongo);
     when(proxyFactory.createProxyFromOriginal(fakeMongoDatabase)).thenReturn(fakeMongoDatabase);
     when(proxyFactory.createProxyFromOriginal(fakeDb)).thenReturn(fakeDb);
+    when(proxyFactory.createProxyFromOriginal(mongoTemplate)).thenReturn(mongoTemplate);
 
-    doReturn(MongobeeTestBase.getFakeMongoClient(fakeMongoDatabase, fakeDb))
-        .when(runner).getMongoClient();
+    doReturn(fakeMongoClient).when(runner).getMongoClient();
 
-    runner.setDbName("mongobeetest");
+
+    runner.setJongo(jongo);
+    runner.setMongoTemplate(mongoTemplate);
+    runner.setDbName(dbName);
     runner.setEnabled(true);
     runner.setChangeLogsScanPackage(MongobeeTestResource.class.getPackage().getName());
-  }
-
-  protected void setJongoField(Jongo jongInstance) throws NoSuchFieldException, IllegalAccessException {
-    Field f = runner.getClass().getSuperclass().getDeclaredField("jongo");
-    f.setAccessible(true);
-    f.set(runner, jongInstance);
-    f.setAccessible(false);
   }
 
   @After
