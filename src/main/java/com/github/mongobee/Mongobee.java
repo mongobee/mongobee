@@ -72,8 +72,6 @@ public class Mongobee implements InitializingBean {
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
   private MongoClient mongoClient;
-  private MongoDatabase mongoDatabase;
-  private DB db;
 
   //Proxies
   private MongoDatabase mongoDatabaseProxy;
@@ -233,11 +231,11 @@ public class Mongobee implements InitializingBean {
 
           try {
             if (dao.isNewChange(changeEntry)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, db, mongoDatabase);
+              executeChangeSetMethod(changesetMethod, changelogInstance);
               dao.save(changeEntry);
               logger.info(changeEntry + " applied");
             } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, db, mongoDatabase);
+              executeChangeSetMethod(changesetMethod, changelogInstance);
               logger.info(changeEntry + " reapplied");
             } else {
               logger.info(changeEntry + " passed over");
@@ -260,34 +258,34 @@ public class Mongobee implements InitializingBean {
     }
   }
 
-  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db, MongoDatabase mongoDatabase)
+  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance)
       throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
     if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
       logger.debug("method with DB argument");
 
-      return changeSetMethod.invoke(changeLogInstance, getDbProxy());
+      return changeSetMethod.invoke(changeLogInstance, dbProxy);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
       logger.debug("method with Jongo argument");
 
-      return changeSetMethod.invoke(changeLogInstance, getJongoProxy());
+      return changeSetMethod.invoke(changeLogInstance, jongoProxy);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
-      return changeSetMethod.invoke(changeLogInstance, getMongoTemplateProxy());
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplateProxy);
     } else if (changeSetMethod.getParameterTypes().length == 2
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
         && changeSetMethod.getParameterTypes()[1].equals(Environment.class)) {
       logger.debug("method with MongoTemplate and environment arguments");
 
-      return changeSetMethod.invoke(changeLogInstance, getMongoTemplateProxy(), springEnvironment);
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplateProxy, springEnvironment);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
       logger.debug("method with DB argument");
 
-      return changeSetMethod.invoke(changeLogInstance, getMongoDatabaseProxy());
+      return changeSetMethod.invoke(changeLogInstance, this.mongoDatabaseProxy);
     } else if (changeSetMethod.getParameterTypes().length == 0) {
       logger.debug("method with no params");
 
@@ -529,65 +527,19 @@ public class Mongobee implements InitializingBean {
       throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
     }
 
-    //Setting mongo base connections
-    this.mongoDatabase = getMongoClient().getDatabase(dbName);
-    this.db = getMongoClient().getDB(dbName);
+    final MongoDatabase mongoDatabase = getMongoClient().getDatabase(dbName);
+    final DB db = getMongoClient().getDB(dbName);
 
     //Initializing injections
     this.dao.connectMongoDb(mongoDatabase, db);
     this.lockChecker.initialize(mongoDatabase);
-    service.setChangeLogsBasePackage(changeLogsScanPackage);
-    service.setEnvironment(springEnvironment);
-  }
-
-  /**
-   * Proxies
-   */
-
-  private MongoDatabase getMongoDatabaseProxy() {
-    if (mongoDatabaseProxy == null) {
-      synchronized (this) {
-        if (mongoDatabaseProxy == null) {
-          this.mongoDatabaseProxy = proxyFactory.createProxyFromOriginal(this.mongoDatabase);
-        }
-      }
-    }
-    return mongoDatabaseProxy;
-  }
-
-  private DB getDbProxy() {
-    if (dbProxy == null) {
-      synchronized (this) {
-        if (dbProxy == null) {
-          this.dbProxy = proxyFactory.createProxyFromOriginal(this.db);
-        }
-      }
-    }
-    return dbProxy;
-  }
-
-
-  private Jongo getJongoProxy() {
-    if (jongoProxy == null) {
-      synchronized (this) {
-        if (jongoProxy == null) {
-          jongoProxy = proxyFactory.createProxyFromOriginal(jongo != null ? jongo : new Jongo(db));
-        }
-      }
-    }
-    return jongoProxy;
-  }
-
-
-  private MongoTemplate getMongoTemplateProxy() {
-    if (mongoTemplateProxy == null) {
-      synchronized (this) {
-        if (mongoTemplateProxy == null) {
-          mongoTemplateProxy =  mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName);
-        }
-      }
-    }
-    return mongoTemplateProxy;
+    this.service.setChangeLogsBasePackage(changeLogsScanPackage);
+    this.service.setEnvironment(springEnvironment);
+    this.mongoDatabaseProxy = proxyFactory.createProxyFromOriginal(mongoDatabase);
+    this.dbProxy = proxyFactory.createProxyFromOriginal(db);
+    this.jongoProxy = proxyFactory.createProxyFromOriginal(jongo != null ? jongo : new Jongo(db));
+    this.mongoTemplateProxy =  proxyFactory.createProxyFromOriginal(mongoTemplate != null ? mongoTemplate : new MongoTemplate(
+        db.getMongo(), dbName));
   }
 
 }
