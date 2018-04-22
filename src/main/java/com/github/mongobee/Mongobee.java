@@ -1,13 +1,22 @@
 package com.github.mongobee;
 
-import static com.mongodb.ServerAddress.defaultHost;
-import static com.mongodb.ServerAddress.defaultPort;
-import static org.springframework.util.StringUtils.hasText;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-
+import com.github.mongobee.changeset.ChangeEntry;
+import com.github.mongobee.dao.ChangeEntryDao;
+import com.github.mongobee.exception.MongobeeChangeSetException;
+import com.github.mongobee.exception.MongobeeConfigurationException;
+import com.github.mongobee.exception.MongobeeConnectionException;
+import com.github.mongobee.exception.MongobeeException;
+import com.github.mongobee.exception.MongobeeLockException;
+import com.github.mongobee.lock.LockChecker;
+import com.github.mongobee.lock.LockRepository;
+import com.github.mongobee.utils.ChangeService;
+import com.github.mongobee.utils.TimeUtils;
+import com.github.mongobee.utils.proxy.PreInterceptor;
+import com.github.mongobee.utils.proxy.ProxyFactory;
+import com.mongodb.DB;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
 import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,17 +24,16 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.dao.ChangeEntryDao;
-import com.github.mongobee.exception.MongobeeChangeSetException;
-import com.github.mongobee.exception.MongobeeConfigurationException;
-import com.github.mongobee.exception.MongobeeConnectionException;
-import com.github.mongobee.exception.MongobeeException;
-import com.github.mongobee.utils.ChangeService;
-import com.mongodb.DB;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.mongodb.ServerAddress.defaultHost;
+import static com.mongodb.ServerAddress.defaultPort;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Mongobee runner
@@ -38,23 +46,39 @@ public class Mongobee implements InitializingBean {
 
   private static final String DEFAULT_CHANGELOG_COLLECTION_NAME = "dbchangelog";
   private static final String DEFAULT_LOCK_COLLECTION_NAME = "mongobeelock";
-  private static final boolean DEFAULT_WAIT_FOR_LOCK = false;
-  private static final long DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME = 5L;
-  private static final long DEFAULT_CHANGE_LOG_LOCK_POLL_RATE = 10L;
-  private static final boolean DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK = false;
+  private static final long DEFAULT_LOCK_ACTIVE_MILLIS = 24 * 60 * 60 * 1000;//24 hours by default
+  private static final long DEFAULT_LOCK_MAX_WAIT_MILLIS = 2 * 60 * 1000;//2 minutes by default
+  private static final int DEFAULT_LOCK_MAX_TRIES = 1;//1 by default
+  private static final Set<String>
+      PROXY_CREATOR_METHODS =
+      new HashSet<>(Arrays.asList("getCollection", "getCollectionFromString", "getDatabase", "toString"));
+  private static final Set<String>
+      UNCHECKED_PROXY_METHODS =
+      new HashSet<>(Arrays.asList("getCollection", "getCollectionFromString", "getDatabase", "toString"));
 
+  private TimeUtils timeUtils;
+  private ProxyFactory proxyFactory;
   private ChangeEntryDao dao;
+  private LockRepository lockRepository;
+  private LockChecker lockChecker;
+  private ChangeService service;
 
   private boolean enabled = true;
   private String changeLogsScanPackage;
   private MongoClientURI mongoClientURI;
-  private MongoClient mongoClient;
   private String dbName;
   private Environment springEnvironment;
+  private boolean throwExceptionIfCannotObtainLock = false;
 
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
+  private MongoClient mongoClient;
 
+  //Proxies
+  private MongoDatabase mongoDatabaseProxy;
+  private DB dbProxy;
+  private Jongo jongoProxy;
+  private MongoTemplate mongoTemplateProxy;
 
   /**
    * <p>Simple constructor with default configuration of host (localhost) and port (27017). Although
@@ -76,8 +100,7 @@ public class Mongobee implements InitializingBean {
   public Mongobee(MongoClientURI mongoClientURI) {
     this.mongoClientURI = mongoClientURI;
     this.setDbName(mongoClientURI.getDatabase());
-    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
-        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
+    initDependencies();
   }
 
   /**
@@ -90,8 +113,35 @@ public class Mongobee implements InitializingBean {
    */
   public Mongobee(MongoClient mongoClient) {
     this.mongoClient = mongoClient;
-    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
-        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
+    initDependencies();
+  }
+
+  //Ideally this beans are injected from outside
+  private void initDependencies() {
+    this.timeUtils = new TimeUtils();
+    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME);
+    this.lockRepository = new LockRepository(DEFAULT_LOCK_COLLECTION_NAME);
+    this.lockChecker = new LockChecker(lockRepository, timeUtils)
+        .setLockAcquiredForMillis(DEFAULT_LOCK_ACTIVE_MILLIS)
+        .setLockMaxTries(DEFAULT_LOCK_MAX_TRIES)
+        .setLockMaxWaitMillis(DEFAULT_LOCK_MAX_WAIT_MILLIS);
+    PreInterceptor preInterceptor = new PreInterceptor() {
+      @Override
+      public void before() {
+        try {
+          lockChecker.ensureLockDefault();
+        } catch (MongobeeLockException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    };
+
+    proxyFactory = new ProxyFactory(
+        preInterceptor,
+        PROXY_CREATOR_METHODS,
+        UNCHECKED_PROXY_METHODS);
+
+    service = new ChangeService();
   }
 
   /**
@@ -116,11 +166,12 @@ public class Mongobee implements InitializingBean {
    * <p>For details, please see com.mongodb.MongoClientURI
    *
    * @param mongoURI with correct format
-   * @see com.mongodb.MongoClientURI
+   * @see MongoClientURI
    */
 
   public Mongobee(String mongoURI) {
     this(new MongoClientURI(mongoURI));
+    initDependencies();
   }
 
   /**
@@ -145,39 +196,35 @@ public class Mongobee implements InitializingBean {
     }
 
     validateConfig();
-
-    if (this.mongoClient != null) {
-      dao.connectMongoDb(this.mongoClient, dbName);
-    } else {
-      dao.connectMongoDb(this.mongoClientURI, dbName);
-    }
-
-    if (!dao.acquireProcessLock()) {
-      logger.info("Mongobee did not acquire process lock. Exiting.");
-      return;
-    }
-
-    logger.info("Mongobee acquired process lock, starting the data migration sequence..");
+    initialize();
 
     try {
+      lockChecker.acquireLockDefault();
       executeMigration();
+    } catch (MongobeeLockException lockEx) {
+
+      if (throwExceptionIfCannotObtainLock) {
+        logger.error(lockEx.getMessage());
+        throw new MongobeeException(lockEx.getMessage());
+      }
+      logger.warn(lockEx.getMessage());
+      logger.warn("Mongobee did not acquire process lock. EXITING WITHOUT RUNNING DATA MIGRATION");
+
     } finally {
-      logger.info("Mongobee is releasing process lock.");
-      dao.releaseProcessLock();
+      lockChecker.releaseLockDefault();//we do it anyway, it's idempotent
+      logger.info("Mongobee has finished his job.");
     }
 
-    logger.info("Mongobee has finished his job.");
   }
 
-  private void executeMigration() throws MongobeeConnectionException, MongobeeException {
-
-    ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
+  private void executeMigration() throws MongobeeException {
+    logger.info("Mongobee starting the data migration sequence..");
 
     for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
       Object changelogInstance = null;
       try {
-        changelogInstance = changelogClass.getConstructor().newInstance();
+        changelogInstance = service.createInstance(changelogClass);
         List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
 
         for (Method changesetMethod : changesetMethods) {
@@ -185,11 +232,11 @@ public class Mongobee implements InitializingBean {
 
           try {
             if (dao.isNewChange(changeEntry)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
+              executeChangeSetMethod(changesetMethod, changelogInstance);
               dao.save(changeEntry);
               logger.info(changeEntry + " applied");
             } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
+              executeChangeSetMethod(changesetMethod, changelogInstance);
               logger.info(changeEntry + " reapplied");
             } else {
               logger.info(changeEntry + " passed over");
@@ -212,34 +259,34 @@ public class Mongobee implements InitializingBean {
     }
   }
 
-  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db, MongoDatabase mongoDatabase)
+  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance)
       throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
     if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
       logger.debug("method with DB argument");
 
-      return changeSetMethod.invoke(changeLogInstance, db);
+      return changeSetMethod.invoke(changeLogInstance, dbProxy);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
       logger.debug("method with Jongo argument");
 
-      return changeSetMethod.invoke(changeLogInstance, jongo != null ? jongo : new Jongo(db));
+      return changeSetMethod.invoke(changeLogInstance, jongoProxy);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName));
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplateProxy);
     } else if (changeSetMethod.getParameterTypes().length == 2
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
         && changeSetMethod.getParameterTypes()[1].equals(Environment.class)) {
       logger.debug("method with MongoTemplate and environment arguments");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName), springEnvironment);
+      return changeSetMethod.invoke(changeLogInstance, mongoTemplateProxy, springEnvironment);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
       logger.debug("method with DB argument");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoDatabase);
+      return changeSetMethod.invoke(changeLogInstance, this.mongoDatabaseProxy);
     } else if (changeSetMethod.getParameterTypes().length == 0) {
       logger.debug("method with no params");
 
@@ -264,7 +311,7 @@ public class Mongobee implements InitializingBean {
    * @throws MongobeeConnectionException exception
    */
   public boolean isExecutionInProgress() throws MongobeeConnectionException {
-    return dao.isProccessLockHeld();
+    return lockChecker.isLockHeld();
   }
 
   /**
@@ -310,7 +357,7 @@ public class Mongobee implements InitializingBean {
   /**
    * Feature which enables/disables Mongobee runner execution
    *
-   * @param enabled MOngobee will run only if this option is set to true
+   * @param enabled Mongobee will run only if this option is set to true
    * @return Mongobee object for fluent interface
    */
   public Mongobee setEnabled(boolean enabled) {
@@ -319,24 +366,36 @@ public class Mongobee implements InitializingBean {
   }
 
   /**
-   * Feature which enables/disables waiting for lock if it's already obtained
+   * <p>Feature which enables/disables waiting for lock if it's already acquired by another process</p>
+   * <p>It is disable if setLockMaxTries is called with a number different than 1</p>
+   * <p>
+   * <p>If waitForLock is false, will set maxTries to 1. If it's true and waitForLock is less than 2, it will be
+   * set to 2</p>
    *
-   * @param waitForLock Mongobee will be waiting for lock if it's already obtained if this option is set to true
+   * @param waitForLock Mongobee will wait for lock when it's already obtained, if this option is set to true.
    * @return Mongobee object for fluent interface
+   * @deprecated use setLockConfig or setLockQuickConfig
    */
+  @Deprecated
   public Mongobee setWaitForLock(boolean waitForLock) {
-    this.dao.setWaitForLock(waitForLock);
+    if (!waitForLock) {
+      this.lockChecker.setLockMaxTries(1);
+    } else if (this.lockChecker.getLockMaxTries() <= 1) {
+      this.lockChecker.setLockMaxTries(2);
+    }
     return this;
   }
 
   /**
-   * Waiting time for acquiring lock if waitForLock is true
+   * Waiting time for acquiring lock if maxTries is greater than 1
    *
    * @param changeLogLockWaitTime Waiting time in minutes for acquiring lock
    * @return Mongobee object for fluent interface
+   * @deprecated use setLockConfig or setLockQuickConfig
    */
+  @Deprecated
   public Mongobee setChangeLogLockWaitTime(long changeLogLockWaitTime) {
-    this.dao.setChangeLogLockWaitTime(changeLogLockWaitTime);
+    this.lockChecker.setLockMaxWaitMillis(timeUtils.minutesToMillis(changeLogLockWaitTime));
     return this;
   }
 
@@ -345,9 +404,9 @@ public class Mongobee implements InitializingBean {
    *
    * @param changeLogLockPollRate Poll rate in seconds for acquiring lock
    * @return Mongobee object for fluent interface
+   * @deprecated use setLockConfig or setLockQuickConfig
    */
   public Mongobee setChangeLogLockPollRate(long changeLogLockPollRate) {
-    this.dao.setChangeLogLockPollRate(changeLogLockPollRate);
     return this;
   }
 
@@ -358,7 +417,34 @@ public class Mongobee implements InitializingBean {
    * @return Mongobee object for fluent interface
    */
   public Mongobee setThrowExceptionIfCannotObtainLock(boolean throwExceptionIfCannotObtainLock) {
-    this.dao.setThrowExceptionIfCannotObtainLock(throwExceptionIfCannotObtainLock);
+    this.throwExceptionIfCannotObtainLock = throwExceptionIfCannotObtainLock;
+    return this;
+  }
+
+  /**
+   * Set up the lock with minimal configuration. This implies Mongobee will throw an exception if cannot obtains the lock.
+   *
+   * @param lockAcquiredForMinutes   Acquired time in minutes
+   * @param maxWaitingForLockMinutes max time in minutes to wait for the lock in each try.
+   * @param maxTries                 number of tries
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setLockConfig(long lockAcquiredForMinutes, long maxWaitingForLockMinutes, int maxTries) {
+    this.lockChecker
+        .setLockAcquiredForMillis(timeUtils.minutesToMillis(lockAcquiredForMinutes))
+        .setLockMaxWaitMillis(timeUtils.minutesToMillis(maxWaitingForLockMinutes))
+        .setLockMaxTries(maxTries);
+    this.setThrowExceptionIfCannotObtainLock(true);
+    return this;
+  }
+
+  /**
+   * Set up the lock with default configuration to wait for it and through an exception when cannot obtain it.
+   *
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setLockQuickConfig() {
+    setLockConfig(3, 4, 3);
     return this;
   }
 
@@ -397,7 +483,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Overwrites a default mongobee changelog collection hardcoded in DEFAULT_CHANGELOG_COLLECTION_NAME.
-   *
+   * <p>
    * CAUTION! Use this method carefully - when changing the name on a existing system,
    * your changelogs will be executed again on your MongoDB instance
    *
@@ -416,7 +502,7 @@ public class Mongobee implements InitializingBean {
    * @return Mongobee object for fluent interface
    */
   public Mongobee setLockCollectionName(String lockCollectionName) {
-    this.dao.setLockCollectionName(lockCollectionName);
+    this.lockRepository.setLockCollectionName(lockCollectionName);
     return this;
   }
 
@@ -425,6 +511,39 @@ public class Mongobee implements InitializingBean {
    * This will close either the connection Mongobee was initiated with or that which was internally created.
    */
   public void close() {
-    dao.close();
+    getMongoClient().close();
   }
+
+  MongoClient getMongoClient() {
+    return mongoClient;
+  }
+
+  private void initialize() throws MongobeeConfigurationException, MongobeeConnectionException {
+    //Ensuring mongoClient
+    if (this.getMongoClient() == null) {
+      this.mongoClient = new MongoClient(mongoClientURI);
+      this.dbName = (!hasText(dbName)) ? mongoClientURI.getDatabase() : dbName;
+    }
+
+    //Validating dbName
+    if (!hasText(dbName)) {
+      throw new MongobeeConfigurationException("DB name is not set. Should be defined in MongoDB URI or via setter");
+    }
+
+    final MongoDatabase mongoDatabase = getMongoClient().getDatabase(dbName);
+    final DB db = getMongoClient().getDB(dbName);
+
+    //Initializing injections
+    this.dao.connectMongoDb(mongoDatabase, db);
+    this.lockChecker.initialize(mongoDatabase);
+    this.service.setChangeLogsBasePackage(changeLogsScanPackage);
+    this.service.setEnvironment(springEnvironment);
+    this.mongoDatabaseProxy = proxyFactory.createProxyFromOriginal(mongoDatabase);
+    this.dbProxy = proxyFactory.createProxyFromOriginal(db);
+    this.jongoProxy = proxyFactory.createProxyFromOriginal(jongo != null ? jongo : new Jongo(db));
+    this.mongoTemplateProxy =
+        proxyFactory.createProxyFromOriginal(mongoTemplate != null ? mongoTemplate : new MongoTemplate(
+            db.getMongo(), dbName));
+  }
+
 }
