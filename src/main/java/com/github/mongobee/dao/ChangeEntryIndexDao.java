@@ -39,7 +39,7 @@ public class ChangeEntryIndexDao {
 
   public boolean isUnique(Document index) {
     Object unique = index.get("unique");
-    if (unique != null && unique instanceof Boolean) {
+    if (unique instanceof Boolean) {
       return (Boolean) unique;
     } else {
       return false;
