@@ -1,20 +1,5 @@
 package com.github.mongobee;
 
-import static com.mongodb.ServerAddress.defaultHost;
-import static com.mongodb.ServerAddress.defaultPort;
-import static org.springframework.util.StringUtils.hasText;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-
-import org.jongo.Jongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.env.Environment;
-import org.springframework.data.mongodb.core.MongoTemplate;
-
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangeSetException;
@@ -26,6 +11,20 @@ import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
+import org.jongo.Jongo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import static com.mongodb.ServerAddress.defaultHost;
+import static com.mongodb.ServerAddress.defaultPort;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Mongobee runner
@@ -169,13 +168,13 @@ public class Mongobee implements InitializingBean {
     logger.info("Mongobee has finished his job.");
   }
 
-  private void executeMigration() throws MongobeeConnectionException, MongobeeException {
+  private void executeMigration() throws MongobeeException {
 
     ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
 
     for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
-      Object changelogInstance = null;
+      Object changelogInstance;
       try {
         changelogInstance = changelogClass.getConstructor().newInstance();
         List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
@@ -198,17 +197,12 @@ public class Mongobee implements InitializingBean {
             logger.error(e.getMessage());
           }
         }
-      } catch (NoSuchMethodException e) {
-        throw new MongobeeException(e.getMessage(), e);
-      } catch (IllegalAccessException e) {
+      } catch (NoSuchMethodException | IllegalAccessException | InstantiationException e) {
         throw new MongobeeException(e.getMessage(), e);
       } catch (InvocationTargetException e) {
         Throwable targetException = e.getTargetException();
         throw new MongobeeException(targetException.getMessage(), e);
-      } catch (InstantiationException e) {
-        throw new MongobeeException(e.getMessage(), e);
       }
-
     }
   }
 
