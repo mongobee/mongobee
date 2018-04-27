@@ -1,13 +1,5 @@
 package com.github.mongobee.dao;
 
-import static org.springframework.util.StringUtils.hasText;
-
-import java.util.Date;
-
-import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
@@ -17,6 +9,13 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author lstolowski
@@ -153,7 +152,7 @@ public class ChangeEntryDao {
   }
 
   private void ensureChangeLogCollectionIndex(MongoCollection<Document> collection) {
-    Document index = indexDao.findRequiredChangeAndAuthorIndex(mongoDatabase);
+    Document index = indexDao.findRequiredChangeAndAuthorIndex(collection);
     if (index == null) {
       indexDao.createRequiredUniqueIndex(collection);
       logger.debug("Index in collection " + changelogCollectionName + " was created");
