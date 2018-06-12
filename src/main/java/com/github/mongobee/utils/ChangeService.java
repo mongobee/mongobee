@@ -1,10 +1,9 @@
 package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
 import com.github.mongobee.exception.MongobeeChangeSetException;
-import org.reflections.Reflections;
+import com.github.mongobee.exception.MongobeeException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
@@ -26,36 +25,22 @@ import static java.util.Arrays.asList;
  * @author lstolowski
  * @since 27/07/2014
  */
-public class ChangeService {
-  private static final String DEFAULT_PROFILE = "default";
+public abstract class ChangeService {
+    
+  protected static final String DEFAULT_PROFILE = "default";
+  
+  protected final List<String> activeProfiles;
 
-  private final String changeLogsBasePackage;
-  private final List<String> activeProfiles;
-
-  public ChangeService(String changeLogsBasePackage) {
-    this(changeLogsBasePackage, null);
-  }
-
-  public ChangeService(String changeLogsBasePackage, Environment environment) {
-    this.changeLogsBasePackage = changeLogsBasePackage;
-
+  public abstract List<Object> fetchChangeLogs() throws MongobeeException;
+  
+  public ChangeService(Environment environment) {
     if (environment != null && environment.getActiveProfiles() != null && environment.getActiveProfiles().length> 0) {
       this.activeProfiles = asList(environment.getActiveProfiles());
     } else {
       this.activeProfiles = asList(DEFAULT_PROFILE);
     }
   }
-
-  public List<Class<?>> fetchChangeLogs(){
-    Reflections reflections = new Reflections(changeLogsBasePackage);
-    Set<Class<?>> changeLogs = reflections.getTypesAnnotatedWith(ChangeLog.class); // TODO remove dependency, do own method
-    List<Class<?>> filteredChangeLogs = (List<Class<?>>) filterByActiveProfiles(changeLogs);
-
-    Collections.sort(filteredChangeLogs, new ChangeLogComparator());
-
-    return filteredChangeLogs;
-  }
-
+    
   public List<Method> fetchChangeSets(final Class<?> type) throws MongobeeChangeSetException {
     final List<Method> changeSets = filterChangeSetAnnotation(asList(type.getDeclaredMethods()));
     final List<Method> filteredChangeSets = (List<Method>) filterByActiveProfiles(changeSets);
@@ -109,7 +94,7 @@ public class ChangeService {
     return false;
   }
 
-  private List<?> filterByActiveProfiles(Collection<? extends AnnotatedElement> annotated) {
+  protected List<?> filterByActiveProfiles(Collection<? extends AnnotatedElement> annotated) {
     List<AnnotatedElement> filtered = new ArrayList<>();
     for (AnnotatedElement element : annotated) {
       if (matchesActiveSpringProfile(element)){

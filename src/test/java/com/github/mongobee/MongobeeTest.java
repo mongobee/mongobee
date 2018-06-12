@@ -7,6 +7,7 @@ import com.github.mongobee.dao.ChangeEntryIndexDao;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeException;
 import com.github.mongobee.test.changelogs.MongobeeTestResource;
+import com.google.common.collect.Lists;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
@@ -23,6 +24,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.net.UnknownHostException;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -106,10 +108,60 @@ public class MongobeeTest {
         .append(ChangeEntry.KEY_CHANGEID, "test5")
         .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(1, change5);
+    
+    long change6 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_CHANGEID, "Btest1")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(1, change6);
 
     long changeAll = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
         .append(ChangeEntry.KEY_AUTHOR, "testuser"));
     assertEquals(12, changeAll);
+  }
+
+  @Test
+  public void shouldExecutePreInstantiatedChangeSets() throws Exception {
+    // given
+    when(dao.acquireProcessLock()).thenReturn(true);
+    when(dao.isNewChange(any(ChangeEntry.class))).thenReturn(true);
+
+    // when
+    List<Object> preInstantiatedList = Lists.<Object>newArrayList(new MongobeeTestResource());
+    runner.setChangeLogObjectList(preInstantiatedList);
+    runner.execute();
+
+    // then
+        verify(dao, times(5)).save(any(ChangeEntry.class)); // 13 changesets saved to dbchangelog
+
+    // dbchangelog collection checking
+    long change1 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_CHANGEID, "test1")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(1, change1);
+    long change2 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_CHANGEID, "test2")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(1, change2);
+    long change3 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_CHANGEID, "test3")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(1, change3);
+    long change4 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_CHANGEID, "test4")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(1, change4);
+    long change5 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_CHANGEID, "test5")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(1, change5);
+    long change6 = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_CHANGEID, "Btest1")
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(0, change6);
+
+    long changeAll = fakeMongoDatabase.getCollection(CHANGELOG_COLLECTION_NAME).count(new Document()
+        .append(ChangeEntry.KEY_AUTHOR, "testuser"));
+    assertEquals(5, changeAll);
   }
 
   @Test
