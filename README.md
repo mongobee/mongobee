@@ -210,6 +210,18 @@ public Mongobee mongobee(Environment environment) {
 }
 ```
 
+### External change log object creation (option)
+MongoBee allows the developer or another service to handle change log object creation if desired. This is useful in instances where the developer wants to inject other beans or properties into the change log objects.
+**NOTE:** When using this method, all change log objects must be instantiated externally. Mongobee will not scan for other change log classes.
+
+```java
+public Mongobee mongobee(List<Object> preInstantiatedChangeLogs) {
+  Mongobee runner = new Mongobee(uri);
+  runner.setChangeLogObjectList(preInstantiatedChangeLogs);
+  //... etc
+}
+```
+
 ## Known issues
 
 ##### Mongo java driver conflicts

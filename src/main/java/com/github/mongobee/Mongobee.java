@@ -298,12 +298,14 @@ public class Mongobee implements InitializingBean {
     return this;
   }
   
-  /**
-   * List of changeLog objects for when constructing your changeLogObjects outside of MongoBee
-   * 
-   * @param changeLogObjectList List of changeLogObjects which will be run.
-   * @return Mongobee object for fluent interface
-   */
+    /**
+     * List of change log objects for when constructing your changeLogObjects outside of MongoBee.
+     * Setting the parameter of this method to anything other than null will cause Mongobee to
+     * skip/ignore the change log scan package.
+     * 
+     * @param changeLogObjectList List of changeLogObjects which will be run.
+     * @return Mongobee object for fluent interface
+     */
   public Mongobee setChangeLogObjectList(List<Object> changeLogObjectList) {
     this.changeLogObjectList = changeLogObjectList;
     return this;
