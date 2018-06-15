@@ -210,6 +210,34 @@ public Mongobee mongobee(Environment environment) {
 }
 ```
 
+### Custom ChangeLogLoader
+
+The ChangeLogLoader controls how change log classes and methods are filtered and instantiated. By default Mongobee runs with a SpringProfileChangeLogLoader, which filters by using spring profiles pulled from the environment described above. The caller can customize these things by declaring a custom class that extends ChangeLogLoader and passing it into Mongobee.
+
+Example ChangeLogLoader using Guice for injection.
+```java
+public class GuiceChangeLogLoader extends ChangeLogLoader {
+	private Injector injector;
+	public GuiceChangeLogLoader (String changeLogBasePackage, Injector injector) {
+		super(changeLogBasePackage);
+		this.injector = injector;
+	}
+	
+	@Override
+	public Object fetchChangeLogInstance(Class<?> changeLogClass) throws MongobeeException {
+		return injector.getInstance(changeLogClass);
+	}
+}
+```
+```java
+public Mongobee mongobee(String basePackage, Injector injector) {
+  Mongobee runner = new Mongobee(uri);
+  runner.setChangeLogLoader(new GuiceChangeLogLoader(basePackage, injector));
+  //... etc
+}
+
+```
+
 ## Known issues
 
 ##### Mongo java driver conflicts

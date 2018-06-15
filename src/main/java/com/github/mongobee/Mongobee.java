@@ -21,7 +21,9 @@ import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
 import com.github.mongobee.exception.MongobeeException;
+import com.github.mongobee.utils.ChangeLogLoader;
 import com.github.mongobee.utils.ChangeService;
+import com.github.mongobee.utils.SpringProfileChangeLogLoader;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -51,6 +53,7 @@ public class Mongobee implements InitializingBean {
   private MongoClient mongoClient;
   private String dbName;
   private Environment springEnvironment;
+  private ChangeLogLoader changeLogLoader;
 
   private MongoTemplate mongoTemplate;
   private Jongo jongo;
@@ -171,13 +174,16 @@ public class Mongobee implements InitializingBean {
 
   private void executeMigration() throws MongobeeConnectionException, MongobeeException {
 
-    ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
+    if (this.changeLogLoader == null) {
+      this.changeLogLoader = new SpringProfileChangeLogLoader(changeLogsScanPackage, springEnvironment);
+    }
+    ChangeService service = new ChangeService(this.changeLogLoader);
 
     for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
       Object changelogInstance = null;
       try {
-        changelogInstance = changelogClass.getConstructor().newInstance();
+        changelogInstance = service.fetchChangeLogInstance(changelogClass);
         List<Method> changesetMethods = service.fetchChangeSets(changelogInstance.getClass());
 
         for (Method changesetMethod : changesetMethods) {
@@ -198,17 +204,12 @@ public class Mongobee implements InitializingBean {
             logger.error(e.getMessage());
           }
         }
-      } catch (NoSuchMethodException e) {
-        throw new MongobeeException(e.getMessage(), e);
       } catch (IllegalAccessException e) {
         throw new MongobeeException(e.getMessage(), e);
       } catch (InvocationTargetException e) {
         Throwable targetException = e.getTargetException();
         throw new MongobeeException(targetException.getMessage(), e);
-      } catch (InstantiationException e) {
-        throw new MongobeeException(e.getMessage(), e);
       }
-
     }
   }
 
@@ -297,6 +298,22 @@ public class Mongobee implements InitializingBean {
    */
   public Mongobee setChangeLogsScanPackage(String changeLogsScanPackage) {
     this.changeLogsScanPackage = changeLogsScanPackage;
+    return this;
+  }
+
+  /**
+   * ChangeLogLoader to be used by Mongobee.
+   * 
+   * NOTE: This will cause environment and changeLogsScanPackage to be ignored
+   * unless they are already part of this ChangeLogLoader
+   * 
+   * @param changeLogLoader
+   *          {@link ChangeLogLoader} which is in charge of loading change logs
+   *          and change sets
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setChangeLogLoader(ChangeLogLoader changeLogLoader) {
+    this.changeLogLoader = changeLogLoader;
     return this;
   }
 
