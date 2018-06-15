@@ -230,7 +230,7 @@ public class GuiceChangeLogLoader extends ChangeLogLoader {
 }
 ```
 ```java
-public Mongobee mongobee(String basePackage, Injector) {
+public Mongobee mongobee(String basePackage, Injector injector) {
   Mongobee runner = new Mongobee(uri);
   runner.setChangeLogLoader(new GuiceChangeLogLoader(basePackage, injector));
   //... etc
