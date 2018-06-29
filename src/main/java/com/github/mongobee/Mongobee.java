@@ -1,8 +1,23 @@
 package com.github.mongobee;
 
-import com.github.mongobee.changeset.ChangeEntry;
+import static com.mongodb.ServerAddress.defaultHost;
+import static com.mongodb.ServerAddress.defaultPort;
+import static org.springframework.util.StringUtils.hasText;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
 import com.github.mongobee.changeset.ChangeLogsProvider;
 import com.github.mongobee.changeset.ScanPackageChangeLogsProvider;
+import org.jongo.Jongo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
+import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.exception.MongobeeConfigurationException;
@@ -13,20 +28,6 @@ import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
-import org.jongo.Jongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.env.Environment;
-import org.springframework.data.mongodb.core.MongoTemplate;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-
-import static com.mongodb.ServerAddress.defaultHost;
-import static com.mongodb.ServerAddress.defaultPort;
-import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Mongobee runner
