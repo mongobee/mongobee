@@ -8,6 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import com.github.mongobee.changeset.ChangeLogsProvider;
+import com.github.mongobee.changeset.ScanPackageChangeLogsProvider;
 import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +48,7 @@ public class Mongobee implements InitializingBean {
   private ChangeEntryDao dao;
 
   private boolean enabled = true;
-  private String changeLogsScanPackage;
+  private ChangeLogsProvider changeLogsProvider;
   private MongoClientURI mongoClientURI;
   private MongoClient mongoClient;
   private String dbName;
@@ -171,7 +173,7 @@ public class Mongobee implements InitializingBean {
 
   private void executeMigration() throws MongobeeConnectionException, MongobeeException {
 
-    ChangeService service = new ChangeService(changeLogsScanPackage, springEnvironment);
+    ChangeService service = new ChangeService(changeLogsProvider, springEnvironment);
 
     for (Class<?> changelogClass : service.fetchChangeLogs()) {
 
@@ -254,8 +256,8 @@ public class Mongobee implements InitializingBean {
     if (!hasText(dbName)) {
       throw new MongobeeConfigurationException("DB name is not set. It should be defined in MongoDB URI or via setter");
     }
-    if (!hasText(changeLogsScanPackage)) {
-      throw new MongobeeConfigurationException("Scan package for changelogs is not set: use appropriate setter");
+    if (changeLogsProvider == null) {
+      throw new MongobeeConfigurationException("Provider for changelogs is not set: use appropriate setter");
     }
   }
 
@@ -290,13 +292,25 @@ public class Mongobee implements InitializingBean {
   }
 
   /**
-   * Package name where @ChangeLog-annotated classes are kept.
+   * Creates a changelogs provider that scans the given package name where @ChangeLog-annotated classes are kept.
+   * Convenience method for {@link #setChangeLogsProvider(ChangeLogsProvider)}.
    *
    * @param changeLogsScanPackage package where your changelogs are
    * @return Mongobee object for fluent interface
    */
   public Mongobee setChangeLogsScanPackage(String changeLogsScanPackage) {
-    this.changeLogsScanPackage = changeLogsScanPackage;
+    this.changeLogsProvider = new ScanPackageChangeLogsProvider(changeLogsScanPackage);
+    return this;
+  }
+
+  /**
+   * Provider that load the changelog classes.
+   *
+   * @param provider changelogs provider
+   * @return Mongobee object for fluent interface
+   */
+  public Mongobee setChangeLogsProvider(ChangeLogsProvider provider) {
+    this.changeLogsProvider = provider;
     return this;
   }
 
@@ -397,7 +411,7 @@ public class Mongobee implements InitializingBean {
 
   /**
    * Overwrites a default mongobee changelog collection hardcoded in DEFAULT_CHANGELOG_COLLECTION_NAME.
-   *
+   * <p>
    * CAUTION! Use this method carefully - when changing the name on a existing system,
    * your changelogs will be executed again on your MongoDB instance
    *

@@ -1,10 +1,9 @@
 package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.ChangeEntry;
-import com.github.mongobee.changeset.ChangeLog;
+import com.github.mongobee.changeset.ChangeLogsProvider;
 import com.github.mongobee.changeset.ChangeSet;
 import com.github.mongobee.exception.MongobeeChangeSetException;
-import org.reflections.Reflections;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
@@ -29,15 +28,15 @@ import static java.util.Arrays.asList;
 public class ChangeService {
   private static final String DEFAULT_PROFILE = "default";
 
-  private final String changeLogsBasePackage;
+  private final ChangeLogsProvider changeLogsProvider;
   private final List<String> activeProfiles;
 
-  public ChangeService(String changeLogsBasePackage) {
-    this(changeLogsBasePackage, null);
+  public ChangeService(ChangeLogsProvider changeLogsProvider) {
+    this(changeLogsProvider, null);
   }
 
-  public ChangeService(String changeLogsBasePackage, Environment environment) {
-    this.changeLogsBasePackage = changeLogsBasePackage;
+  public ChangeService(ChangeLogsProvider changeLogsProvider, Environment environment) {
+    this.changeLogsProvider = changeLogsProvider;
 
     if (environment != null && environment.getActiveProfiles() != null && environment.getActiveProfiles().length> 0) {
       this.activeProfiles = asList(environment.getActiveProfiles());
@@ -47,8 +46,7 @@ public class ChangeService {
   }
 
   public List<Class<?>> fetchChangeLogs(){
-    Reflections reflections = new Reflections(changeLogsBasePackage);
-    Set<Class<?>> changeLogs = reflections.getTypesAnnotatedWith(ChangeLog.class); // TODO remove dependency, do own method
+    Set<Class<?>> changeLogs = changeLogsProvider.load();
     List<Class<?>> filteredChangeLogs = (List<Class<?>>) filterByActiveProfiles(changeLogs);
 
     Collections.sort(filteredChangeLogs, new ChangeLogComparator());
