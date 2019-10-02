@@ -1,5 +1,6 @@
 package com.github.mongobee.dao;
 
+import com.mongodb.client.ListIndexesIterable;
 import org.bson.Document;
 
 import com.github.mongobee.changeset.ChangeEntry;
@@ -10,11 +11,14 @@ import com.mongodb.client.model.IndexOptions;
 /**
  * @author lstolowski
  * @since 10.12.14
+ *
+ * @author Amit Sadafule
+ * @since 29.08.19
  */
 public class ChangeEntryIndexDao {
 
   private String changelogCollectionName;
-	  
+
   public ChangeEntryIndexDao(String changelogCollectionName) {
 	this.changelogCollectionName = changelogCollectionName;
   }
@@ -28,13 +32,17 @@ public class ChangeEntryIndexDao {
   }
 
   public Document findRequiredChangeAndAuthorIndex(MongoDatabase db) {
-    MongoCollection<Document> indexes = db.getCollection("system.indexes");
-    Document index = indexes.find(new Document()
-        .append("ns", db.getName() + "." + changelogCollectionName)
-        .append("key", new Document().append(ChangeEntry.KEY_CHANGEID, 1).append(ChangeEntry.KEY_AUTHOR, 1))
-    ).first();
-
-    return index;
+    ListIndexesIterable<Document> indexes = db.getCollection(changelogCollectionName).listIndexes();
+    if(indexes == null) {
+      return null;
+    }
+    for(Document indexDefinition : indexes) {
+      Document key = indexDefinition.get("key", Document.class);
+      if(key.get(ChangeEntry.KEY_CHANGEID) != null && key.get(ChangeEntry.KEY_AUTHOR) != null) {
+        return indexDefinition;
+      }
+    }
+    return null;
   }
 
   public boolean isUnique(Document index) {
