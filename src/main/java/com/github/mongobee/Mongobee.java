@@ -12,6 +12,7 @@ import org.jongo.Jongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
@@ -78,7 +79,7 @@ public class Mongobee implements InitializingBean {
     this.mongoClientURI = mongoClientURI;
     this.setDbName(mongoClientURI.getDatabase());
     this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
-        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
+            DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
   }
 
   /**
@@ -92,7 +93,7 @@ public class Mongobee implements InitializingBean {
   public Mongobee(MongoClient mongoClient) {
     this.mongoClient = mongoClient;
     this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
-        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
+            DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
   }
 
   /**
@@ -214,38 +215,38 @@ public class Mongobee implements InitializingBean {
   }
 
   private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db, MongoDatabase mongoDatabase)
-      throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
+          throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
     if (changeSetMethod.getParameterTypes().length == 1
-        && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
+            && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
       logger.debug("method with DB argument");
 
       return changeSetMethod.invoke(changeLogInstance, db);
     } else if (changeSetMethod.getParameterTypes().length == 1
-        && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
+            && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
       logger.debug("method with Jongo argument");
 
       return changeSetMethod.invoke(changeLogInstance, jongo != null ? jongo : new Jongo(db));
     } else if (changeSetMethod.getParameterTypes().length == 1
-        && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
+            && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
       //return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(new SimpleMongoDbFactory(new MongoClient(), dbName)));
       return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName));
     } else if (changeSetMethod.getParameterTypes().length == 2
-        && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
-        && changeSetMethod.getParameterTypes()[1].equals(Environment.class)) {
+            && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
+            && changeSetMethod.getParameterTypes()[1].equals(Environment.class)) {
       logger.debug("method with MongoTemplate and environment arguments");
 
       return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName), springEnvironment);
     } else if (changeSetMethod.getParameterTypes().length == 2
-        && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
-        && changeSetMethod.getParameterTypes()[1].equals(ApplicationContext.class)) {
+            && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
+            && changeSetMethod.getParameterTypes()[1].equals(ApplicationContext.class)) {
       logger.debug("method with MongoTemplate and Application context arguments");
 
       return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(dao.getMongoClient(), dbName), applicationContext);
     }
     else if (changeSetMethod.getParameterTypes().length == 1
-        && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
+            && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
       logger.debug("method with DB argument");
 
       return changeSetMethod.invoke(changeLogInstance, mongoDatabase);
@@ -255,7 +256,7 @@ public class Mongobee implements InitializingBean {
       return changeSetMethod.invoke(changeLogInstance);
     } else {
       throw new MongobeeChangeSetException("ChangeSet method " + changeSetMethod.getName() +
-          " has wrong arguments list. Please see docs for more info!");
+              " has wrong arguments list. Please see docs for more info!");
     }
   }
 
