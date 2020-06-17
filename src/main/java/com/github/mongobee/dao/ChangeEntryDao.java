@@ -153,7 +153,7 @@ public class ChangeEntryDao {
   }
 
   private void ensureChangeLogCollectionIndex(MongoCollection<Document> collection) {
-    Document index = indexDao.findRequiredChangeAndAuthorIndex(mongoDatabase);
+    Document index = indexDao.findRequiredChangeAndAuthorIndex(collection);
     if (index == null) {
       indexDao.createRequiredUniqueIndex(collection);
       logger.debug("Index in collection " + changelogCollectionName + " was created");
