@@ -3,14 +3,19 @@
 [![Build Status](https://travis-ci.org/mongobee/mongobee.svg?branch=master)](https://travis-ci.org/mongobee/mongobee) [![Coverity Scan Build Status](https://scan.coverity.com/projects/2721/badge.svg)](https://scan.coverity.com/projects/2721) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.mongobee/mongobee/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.mongobee/mongobee) [![Licence](https://img.shields.io/hexpm/l/plug.svg)](https://github.com/mongobee/mongobee/blob/master/LICENSE)
 ---
 
-
 **mongobee** is a Java tool which helps you to *manage changes* in your MongoDB and *synchronize* them with your application.
 The concept is very similar to other db migration tools such as [Liquibase](http://www.liquibase.org) or [Flyway](http://flywaydb.org) but *without using XML/JSON/YML files*.
 
 The goal is to keep this tool simple and comfortable to use.
 
-
 **mongobee** provides new approach for adding changes (change sets) based on Java classes and methods with appropriate annotations.
+
+
+## Updated:
+
+1.0 : Migrated to latest Mongo/Spring libraries:
+   *  Refactored to use `com.mongodb.client.MongoClient`.
+   *  Removed Jongo support since that uses 'old' MongoClient.
 
 ## Getting started
 
@@ -21,13 +26,13 @@ With Maven
 <dependency>
   <groupId>com.github.mongobee</groupId>
   <artifactId>mongobee</artifactId>
-  <version>0.13</version>
+  <version>1.0</version>
 </dependency>
 ```
 With Gradle
 ```groovy
 compile 'org.javassist:javassist:3.18.2-GA' // workaround for ${javassist.version} placeholder issue*
-compile 'com.github.mongobee:mongobee:0.13'
+compile 'com.github.mongobee:mongobee:1.0'
 ```
 
 ### Usage with Spring
@@ -146,14 +151,6 @@ public void someChange3(DB db) {
   DBCollection mycollection = db.getCollection("mycollection");
   BasicDBObject doc = new BasicDBObject().append("test", "1");
   mycollection .insert(doc);
-}
-
-@ChangeSet(order = "004", id = "someChangeWithJongo", author = "testAuthor")
-public void someChange4(Jongo jongo) {
-  // type: org.jongo.Jongo : Jongo driver can be used, used for simpler notation
-  // example:
-  MongoCollection mycollection = jongo.getCollection("mycollection");
-  mycollection.insert("{test : 1}");
 }
 
 @ChangeSet(order = "005", id = "someChangeWithSpringDataTemplate", author = "testAuthor")
