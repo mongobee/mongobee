@@ -1,8 +1,6 @@
 package com.github.mongobee.exception;
 
-/**
- * @author abelski
- */
+/** @author abelski */
 public class MongobeeException extends Exception {
   public MongobeeException(String message) {
     super(message);

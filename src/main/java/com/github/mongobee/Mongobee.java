@@ -4,17 +4,6 @@ import static com.mongodb.ServerAddress.defaultHost;
 import static com.mongodb.ServerAddress.defaultPort;
 import static org.springframework.util.StringUtils.hasText;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-
-import org.jongo.Jongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.env.Environment;
-import org.springframework.data.mongodb.core.MongoTemplate;
-
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.dao.ChangeEntryDao;
 import com.github.mongobee.exception.MongobeeChangeSetException;
@@ -22,10 +11,17 @@ import com.github.mongobee.exception.MongobeeConfigurationException;
 import com.github.mongobee.exception.MongobeeConnectionException;
 import com.github.mongobee.exception.MongobeeException;
 import com.github.mongobee.utils.ChangeService;
-import com.mongodb.DB;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 /**
  * Mongobee runner
@@ -53,22 +49,21 @@ public class Mongobee implements InitializingBean {
   private Environment springEnvironment;
 
   private MongoTemplate mongoTemplate;
-  private Jongo jongo;
-
 
   /**
-   * <p>Simple constructor with default configuration of host (localhost) and port (27017). Although
-   * <b>the database name need to be provided</b> using {@link Mongobee#setDbName(String)} setter.</p>
-   * <p>It is recommended to use constructors with MongoURI</p>
+   * Simple constructor with default configuration of host (localhost) and port (27017). Although
+   * <b>the database name need to be provided</b> using {@link Mongobee#setDbName(String)} setter.
+   *
+   * <p>It is recommended to use constructors with MongoURI
    */
   public Mongobee() {
     this(new MongoClientURI("mongodb://" + defaultHost() + ":" + defaultPort() + "/"));
   }
 
   /**
-   * <p>Constructor takes db.mongodb.MongoClientURI object as a parameter.
-   * </p><p>For more details about MongoClientURI please see com.mongodb.MongoClientURI docs
-   * </p>
+   * Constructor takes db.mongodb.MongoClientURI object as a parameter.
+   *
+   * <p>For more details about MongoClientURI please see com.mongodb.MongoClientURI docs
    *
    * @param mongoClientURI uri to your db
    * @see MongoClientURI
@@ -76,49 +71,67 @@ public class Mongobee implements InitializingBean {
   public Mongobee(MongoClientURI mongoClientURI) {
     this.mongoClientURI = mongoClientURI;
     this.setDbName(mongoClientURI.getDatabase());
-    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
-        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
+    this.dao =
+        new ChangeEntryDao(
+            DEFAULT_CHANGELOG_COLLECTION_NAME,
+            DEFAULT_LOCK_COLLECTION_NAME,
+            DEFAULT_WAIT_FOR_LOCK,
+            DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME,
+            DEFAULT_CHANGE_LOG_LOCK_POLL_RATE,
+            DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
   }
 
   /**
-   * <p>Constructor takes db.mongodb.MongoClient object as a parameter.
-   * </p><p>For more details about <tt>MongoClient</tt> please see com.mongodb.MongoClient docs
-   * </p>
+   * Constructor takes db.mongodb.MongoClient object as a parameter.
+   *
+   * <p>For more details about <tt>MongoClient</tt> please see com.mongodb.MongoClient docs
    *
    * @param mongoClient database connection client
    * @see MongoClient
    */
   public Mongobee(MongoClient mongoClient) {
     this.mongoClient = mongoClient;
-    this.dao = new ChangeEntryDao(DEFAULT_CHANGELOG_COLLECTION_NAME, DEFAULT_LOCK_COLLECTION_NAME, DEFAULT_WAIT_FOR_LOCK,
-        DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME, DEFAULT_CHANGE_LOG_LOCK_POLL_RATE, DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
+    this.dao =
+        new ChangeEntryDao(
+            DEFAULT_CHANGELOG_COLLECTION_NAME,
+            DEFAULT_LOCK_COLLECTION_NAME,
+            DEFAULT_WAIT_FOR_LOCK,
+            DEFAULT_CHANGE_LOG_LOCK_WAIT_TIME,
+            DEFAULT_CHANGE_LOG_LOCK_POLL_RATE,
+            DEFAULT_THROW_EXCEPTION_IF_CANNOT_OBTAIN_LOCK);
   }
 
   /**
-   * <p>Mongobee runner. Correct MongoDB URI should be provided.</p>
+   * Mongobee runner. Correct MongoDB URI should be provided.
+   *
    * <p>The format of the URI is:
+   *
    * <pre>
    *   mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database[.collection]][?options]]
    * </pre>
+   *
    * <ul>
-   * <li>{@code mongodb://} Required prefix</li>
-   * <li>{@code username:password@} are optional.  If given, the driver will attempt to login to a database after
-   * connecting to a database server. For some authentication mechanisms, only the username is specified and the password is not,
-   * in which case the ":" after the username is left off as well.</li>
-   * <li>{@code host1} Required.  It identifies a server address to connect to. More than one host can be provided.</li>
-   * <li>{@code :portX} is optional and defaults to :27017 if not provided.</li>
-   * <li>{@code /database} the name of the database to login to and thus is only relevant if the
-   * {@code username:password@} syntax is used. If not specified the "admin" database will be used by default.
-   * <b>Mongobee will operate on the database provided here or on the database overriden by setter setDbName(String).</b>
-   * </li>
-   * <li>{@code ?options} are connection options. For list of options please see com.mongodb.MongoClientURI docs</li>
+   *   <li>{@code mongodb://} Required prefix
+   *   <li>{@code username:password@} are optional. If given, the driver will attempt to login to a
+   *       database after connecting to a database server. For some authentication mechanisms, only
+   *       the username is specified and the password is not, in which case the ":" after the
+   *       username is left off as well.
+   *   <li>{@code host1} Required. It identifies a server address to connect to. More than one host
+   *       can be provided.
+   *   <li>{@code :portX} is optional and defaults to :27017 if not provided.
+   *   <li>{@code /database} the name of the database to login to and thus is only relevant if the
+   *       {@code username:password@} syntax is used. If not specified the "admin" database will be
+   *       used by default. <b>Mongobee will operate on the database provided here or on the
+   *       database overriden by setter setDbName(String).</b>
+   *   <li>{@code ?options} are connection options. For list of options please see
+   *       com.mongodb.MongoClientURI docs
    * </ul>
+   *
    * <p>For details, please see com.mongodb.MongoClientURI
    *
    * @param mongoURI with correct format
    * @see com.mongodb.MongoClientURI
    */
-
   public Mongobee(String mongoURI) {
     this(new MongoClientURI(mongoURI));
   }
@@ -185,11 +198,11 @@ public class Mongobee implements InitializingBean {
 
           try {
             if (dao.isNewChange(changeEntry)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
+              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getMongoDatabase());
               dao.save(changeEntry);
               logger.info(changeEntry + " applied");
             } else if (service.isRunAlwaysChangeSet(changesetMethod)) {
-              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getDb(), dao.getMongoDatabase());
+              executeChangeSetMethod(changesetMethod, changelogInstance, dao.getMongoDatabase());
               logger.info(changeEntry + " reapplied");
             } else {
               logger.info(changeEntry + " passed over");
@@ -208,54 +221,53 @@ public class Mongobee implements InitializingBean {
       } catch (InstantiationException e) {
         throw new MongobeeException(e.getMessage(), e);
       }
-
     }
   }
 
-  private Object executeChangeSetMethod(Method changeSetMethod, Object changeLogInstance, DB db, MongoDatabase mongoDatabase)
+  private Object executeChangeSetMethod(
+      Method changeSetMethod, Object changeLogInstance, MongoDatabase mongoDatabase)
       throws IllegalAccessException, InvocationTargetException, MongobeeChangeSetException {
     if (changeSetMethod.getParameterTypes().length == 1
-        && changeSetMethod.getParameterTypes()[0].equals(DB.class)) {
-      logger.debug("method with DB argument");
+        && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
+      logger.debug("method with MongoDatabase argument");
 
-      return changeSetMethod.invoke(changeLogInstance, db);
-    } else if (changeSetMethod.getParameterTypes().length == 1
-        && changeSetMethod.getParameterTypes()[0].equals(Jongo.class)) {
-      logger.debug("method with Jongo argument");
-
-      return changeSetMethod.invoke(changeLogInstance, jongo != null ? jongo : new Jongo(db));
+      return changeSetMethod.invoke(changeLogInstance, mongoDatabase);
     } else if (changeSetMethod.getParameterTypes().length == 1
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)) {
       logger.debug("method with MongoTemplate argument");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName));
+      return changeSetMethod.invoke(
+          changeLogInstance,
+          mongoTemplate != null ? mongoTemplate : new MongoTemplate(mongoClient, dbName));
     } else if (changeSetMethod.getParameterTypes().length == 2
         && changeSetMethod.getParameterTypes()[0].equals(MongoTemplate.class)
         && changeSetMethod.getParameterTypes()[1].equals(Environment.class)) {
       logger.debug("method with MongoTemplate and environment arguments");
 
-      return changeSetMethod.invoke(changeLogInstance, mongoTemplate != null ? mongoTemplate : new MongoTemplate(db.getMongo(), dbName), springEnvironment);
-    } else if (changeSetMethod.getParameterTypes().length == 1
-        && changeSetMethod.getParameterTypes()[0].equals(MongoDatabase.class)) {
-      logger.debug("method with DB argument");
-
-      return changeSetMethod.invoke(changeLogInstance, mongoDatabase);
+      return changeSetMethod.invoke(
+          changeLogInstance,
+          mongoTemplate != null ? mongoTemplate : new MongoTemplate(mongoClient, dbName),
+          springEnvironment);
     } else if (changeSetMethod.getParameterTypes().length == 0) {
       logger.debug("method with no params");
 
       return changeSetMethod.invoke(changeLogInstance);
     } else {
-      throw new MongobeeChangeSetException("ChangeSet method " + changeSetMethod.getName() +
-          " has wrong arguments list. Please see docs for more info!");
+      throw new MongobeeChangeSetException(
+          "ChangeSet method "
+              + changeSetMethod.getName()
+              + " has wrong arguments list. Please see docs for more info!");
     }
   }
 
   private void validateConfig() throws MongobeeConfigurationException {
     if (!hasText(dbName)) {
-      throw new MongobeeConfigurationException("DB name is not set. It should be defined in MongoDB URI or via setter");
+      throw new MongobeeConfigurationException(
+          "DB name is not set. It should be defined in MongoDB URI or via setter");
     }
     if (!hasText(changeLogsScanPackage)) {
-      throw new MongobeeConfigurationException("Scan package for changelogs is not set: use appropriate setter");
+      throw new MongobeeConfigurationException(
+          "Scan package for changelogs is not set: use appropriate setter");
     }
   }
 
@@ -300,9 +312,7 @@ public class Mongobee implements InitializingBean {
     return this;
   }
 
-  /**
-   * @return true if Mongobee runner is enabled and able to run, otherwise false
-   */
+  /** @return true if Mongobee runner is enabled and able to run, otherwise false */
   public boolean isEnabled() {
     return enabled;
   }
@@ -321,7 +331,8 @@ public class Mongobee implements InitializingBean {
   /**
    * Feature which enables/disables waiting for lock if it's already obtained
    *
-   * @param waitForLock Mongobee will be waiting for lock if it's already obtained if this option is set to true
+   * @param waitForLock Mongobee will be waiting for lock if it's already obtained if this option is
+   *     set to true
    * @return Mongobee object for fluent interface
    */
   public Mongobee setWaitForLock(boolean waitForLock) {
@@ -354,7 +365,8 @@ public class Mongobee implements InitializingBean {
   /**
    * Feature which enables/disables throwing MongobeeLockException if Mongobee can not obtain lock
    *
-   * @param throwExceptionIfCannotObtainLock Mongobee will throw MongobeeLockException if lock can not be obtained
+   * @param throwExceptionIfCannotObtainLock Mongobee will throw MongobeeLockException if lock can
+   *     not be obtained
    * @return Mongobee object for fluent interface
    */
   public Mongobee setThrowExceptionIfCannotObtainLock(boolean throwExceptionIfCannotObtainLock) {
@@ -385,21 +397,22 @@ public class Mongobee implements InitializingBean {
   }
 
   /**
-   * Sets pre-configured {@link MongoTemplate} instance to use by the Mongobee
+   * Sets pre-configured {@link MongoClient} instance to use by the Mongobee
    *
-   * @param jongo {@link Jongo} instance
+   * @param mongoClient instance of the {@link MongoClient}
    * @return Mongobee object for fluent interface
    */
-  public Mongobee setJongo(Jongo jongo) {
-    this.jongo = jongo;
+  public Mongobee setMongoClient(MongoClient mongoClient) {
+    this.mongoClient = mongoClient;
     return this;
   }
 
   /**
-   * Overwrites a default mongobee changelog collection hardcoded in DEFAULT_CHANGELOG_COLLECTION_NAME.
+   * Overwrites a default mongobee changelog collection hardcoded in
+   * DEFAULT_CHANGELOG_COLLECTION_NAME.
    *
-   * CAUTION! Use this method carefully - when changing the name on a existing system,
-   * your changelogs will be executed again on your MongoDB instance
+   * <p>CAUTION! Use this method carefully - when changing the name on a existing system, your
+   * changelogs will be executed again on your MongoDB instance
    *
    * @param changelogCollectionName a new changelog collection name
    * @return Mongobee object for fluent interface
@@ -421,8 +434,8 @@ public class Mongobee implements InitializingBean {
   }
 
   /**
-   * Closes the Mongo instance used by Mongobee.
-   * This will close either the connection Mongobee was initiated with or that which was internally created.
+   * Closes the Mongo instance used by Mongobee. This will close either the connection Mongobee was
+   * initiated with or that which was internally created.
    */
   public void close() {
     dao.close();

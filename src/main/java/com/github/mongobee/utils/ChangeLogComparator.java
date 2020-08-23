@@ -1,11 +1,10 @@
 package com.github.mongobee.utils;
 
-import com.github.mongobee.changeset.ChangeLog;
+import static org.springframework.util.StringUtils.hasText;
 
+import com.github.mongobee.changeset.ChangeLog;
 import java.io.Serializable;
 import java.util.Comparator;
-
-import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Sort ChangeLogs by 'order' value or class name (if no 'order' is set)
@@ -22,7 +21,7 @@ public class ChangeLogComparator implements Comparator<Class<?>>, Serializable {
     String val1 = !(hasText(c1.order())) ? o1.getCanonicalName() : c1.order();
     String val2 = !(hasText(c2.order())) ? o2.getCanonicalName() : c2.order();
 
-    if (val1 == null && val2 == null){
+    if (val1 == null && val2 == null) {
       return 0;
     } else if (val1 == null) {
       return -1;
