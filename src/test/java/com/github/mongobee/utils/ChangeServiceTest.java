@@ -1,16 +1,15 @@
 package com.github.mongobee.utils;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+
 import com.github.mongobee.changeset.ChangeEntry;
 import com.github.mongobee.exception.MongobeeChangeSetException;
 import com.github.mongobee.test.changelogs.*;
-import junit.framework.Assert;
-import org.junit.Test;
-
 import java.lang.reflect.Method;
 import java.util.List;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import junit.framework.Assert;
+import org.junit.Test;
 
 /**
  * @author lstolowski
@@ -19,7 +18,7 @@ import static junit.framework.Assert.assertTrue;
 public class ChangeServiceTest {
 
   @Test
-  public void shouldFindChangeLogClasses(){
+  public void shouldFindChangeLogClasses() {
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
@@ -28,7 +27,7 @@ public class ChangeServiceTest {
     // then
     assertTrue(foundClasses != null && foundClasses.size() > 0);
   }
-  
+
   @Test
   public void shouldFindChangeSetMethods() throws MongobeeChangeSetException {
     // given
@@ -37,9 +36,9 @@ public class ChangeServiceTest {
 
     // when
     List<Method> foundMethods = service.fetchChangeSets(MongobeeTestResource.class);
-    
+
     // then
-    assertTrue(foundMethods != null && foundMethods.size() == 5);
+    assertTrue(foundMethods != null && foundMethods.size() == 3);
   }
 
   @Test
@@ -52,9 +51,8 @@ public class ChangeServiceTest {
     List<Method> foundMethods = service.fetchChangeSets(AnotherMongobeeTestResource.class);
 
     // then
-    assertTrue(foundMethods != null && foundMethods.size() == 6);
+    assertTrue(foundMethods != null && foundMethods.size() == 3);
   }
-
 
   @Test
   public void shouldFindIsRunAlwaysMethod() throws MongobeeChangeSetException {
@@ -66,7 +64,7 @@ public class ChangeServiceTest {
     List<Method> foundMethods = service.fetchChangeSets(AnotherMongobeeTestResource.class);
     // then
     for (Method foundMethod : foundMethods) {
-      if (foundMethod.getName().equals("testChangeSetWithAlways")){
+      if (foundMethod.getName().equals("testChangeSetWithAlways")) {
         assertTrue(service.isRunAlwaysChangeSet(foundMethod));
       } else {
         assertFalse(service.isRunAlwaysChangeSet(foundMethod));
@@ -76,17 +74,17 @@ public class ChangeServiceTest {
 
   @Test
   public void shouldCreateEntry() throws MongobeeChangeSetException {
-    
+
     // given
     String scanPackage = MongobeeTestResource.class.getPackage().getName();
     ChangeService service = new ChangeService(scanPackage);
     List<Method> foundMethods = service.fetchChangeSets(MongobeeTestResource.class);
 
     for (Method foundMethod : foundMethods) {
-    
+
       // when
       ChangeEntry entry = service.createChangeEntry(foundMethod);
-      
+
       // then
       Assert.assertEquals("testuser", entry.getAuthor());
       Assert.assertEquals(MongobeeTestResource.class.getName(), entry.getChangeLogClass());
@@ -102,5 +100,4 @@ public class ChangeServiceTest {
     ChangeService service = new ChangeService(scanPackage);
     service.fetchChangeSets(ChangeLogWithDuplicate.class);
   }
-
 }

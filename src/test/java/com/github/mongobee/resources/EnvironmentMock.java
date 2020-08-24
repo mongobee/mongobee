@@ -1,9 +1,11 @@
 package com.github.mongobee.resources;
 
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
 /**
  * Mock for Spring environment
+ *
  * @author lstolowski
  * @since 2014-09-19
  */
@@ -56,11 +58,6 @@ public class EnvironmentMock implements Environment {
   }
 
   @Override
-  public <T> Class<T> getPropertyAsClass(String s, Class<T> tClass) {
-    return null;
-  }
-
-  @Override
   public String getRequiredProperty(String s) throws IllegalStateException {
     return null;
   }
@@ -78,5 +75,11 @@ public class EnvironmentMock implements Environment {
   @Override
   public String resolveRequiredPlaceholders(String s) throws IllegalArgumentException {
     return null;
+  }
+
+  @Override
+  public boolean acceptsProfiles(Profiles profiles) {
+    // TODO Auto-generated method stub
+    return false;
   }
 }

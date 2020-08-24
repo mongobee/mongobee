@@ -15,29 +15,26 @@
  */
 package com.github.mongobee.utils;
 
-/**
- * Miscellaneous class utility methods.
- */
+/** Miscellaneous class utility methods. */
 public class ClassUtils {
 
   /**
-   * Determine whether the {@link Class} identified by the supplied name is present
-   * and can be loaded. Will return {@code false} if either the class or
-   * one of its dependencies is not present or cannot be loaded.
+   * Determine whether the {@link Class} identified by the supplied name is present and can be
+   * loaded. Will return {@code false} if either the class or one of its dependencies is not present
+   * or cannot be loaded.
+   *
    * @param className the name of the class to check
-   * @param classLoader the class loader to use
-   * (may be {@code null}, which indicates the default class loader)
+   * @param classLoader the class loader to use (may be {@code null}, which indicates the default
+   *     class loader)
    * @return whether the specified class is present
    */
   public static boolean isPresent(String className, ClassLoader classLoader) {
     try {
       Class.forName(className);
       return true;
-    }
-    catch (Throwable ex) {
+    } catch (Throwable ex) {
       // Class or one of its dependencies is not present...
       return false;
     }
   }
-
 }

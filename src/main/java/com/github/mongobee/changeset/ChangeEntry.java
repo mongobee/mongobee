@@ -1,12 +1,11 @@
 package com.github.mongobee.changeset;
 
 import java.util.Date;
-
 import org.bson.Document;
 
 /**
- * Entry in the changes collection log {@link com.github.mongobee.Mongobee#DEFAULT_CHANGELOG_COLLECTION_NAME}
- * Type: entity class.
+ * Entry in the changes collection log {@link
+ * com.github.mongobee.Mongobee#DEFAULT_CHANGELOG_COLLECTION_NAME} Type: entity class.
  *
  * @author lstolowski
  * @since 27/07/2014
@@ -23,8 +22,13 @@ public class ChangeEntry {
   private Date timestamp;
   private String changeLogClass;
   private String changeSetMethodName;
-  
-  public ChangeEntry(String changeId, String author, Date timestamp, String changeLogClass, String changeSetMethodName) {
+
+  public ChangeEntry(
+      String changeId,
+      String author,
+      Date timestamp,
+      String changeLogClass,
+      String changeSetMethodName) {
     this.changeId = changeId;
     this.author = author;
     this.timestamp = new Date(timestamp.getTime());
@@ -35,7 +39,8 @@ public class ChangeEntry {
   public Document buildFullDBObject() {
     Document entry = new Document();
 
-    entry.append(KEY_CHANGEID, this.changeId)
+    entry
+        .append(KEY_CHANGEID, this.changeId)
         .append(KEY_AUTHOR, this.author)
         .append(KEY_TIMESTAMP, this.timestamp)
         .append(KEY_CHANGELOGCLASS, this.changeLogClass)
@@ -45,17 +50,20 @@ public class ChangeEntry {
   }
 
   public Document buildSearchQueryDBObject() {
-    return new Document()
-        .append(KEY_CHANGEID, this.changeId)
-        .append(KEY_AUTHOR, this.author);
+    return new Document().append(KEY_CHANGEID, this.changeId).append(KEY_AUTHOR, this.author);
   }
 
   @Override
   public String toString() {
-    return "[ChangeSet: id=" + this.changeId +
-        ", author=" + this.author +
-        ", changeLogClass=" + this.changeLogClass +
-        ", changeSetMethod=" + this.changeSetMethodName + "]";
+    return "[ChangeSet: id="
+        + this.changeId
+        + ", author="
+        + this.author
+        + ", changeLogClass="
+        + this.changeLogClass
+        + ", changeSetMethod="
+        + this.changeSetMethodName
+        + "]";
   }
 
   public String getChangeId() {
@@ -77,5 +85,4 @@ public class ChangeEntry {
   public String getChangeSetMethodName() {
     return this.changeSetMethodName;
   }
-  
 }

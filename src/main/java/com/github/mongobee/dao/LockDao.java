@@ -1,13 +1,12 @@
 package com.github.mongobee.dao;
 
-import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
+import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author colsson11
@@ -21,9 +20,9 @@ public class LockDao {
 
   private static final String LOCK_ENTRY_KEY_VAL = "LOCK";
   private String lockCollectionName;
-  
+
   public LockDao(String lockCollectionName) {
-	this.lockCollectionName = lockCollectionName;
+    this.lockCollectionName = lockCollectionName;
   }
 
   public void intitializeLock(MongoDatabase db) {
@@ -39,15 +38,18 @@ public class LockDao {
 
   public boolean acquireLock(MongoDatabase db) {
 
-    Document insertObj = new Document(KEY_PROP_NAME, LOCK_ENTRY_KEY_VAL).append("status", "LOCK_HELD");
+    Document insertObj =
+        new Document(KEY_PROP_NAME, LOCK_ENTRY_KEY_VAL).append("status", "LOCK_HELD");
 
-    // acquire lock by attempting to insert the same value in the collection - if it already exists (i.e. lock held)
+    // acquire lock by attempting to insert the same value in the collection - if it already exists
+    // (i.e. lock held)
     // there will be an exception
     try {
       db.getCollection(lockCollectionName).insertOne(insertObj);
     } catch (MongoWriteException ex) {
       if (ex.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
-        logger.warn("Duplicate key exception while acquireLock. Probably the lock has been already acquired.");
+        logger.warn(
+            "Duplicate key exception while acquireLock. Probably the lock has been already acquired.");
       }
       return false;
     }
@@ -56,7 +58,8 @@ public class LockDao {
 
   public void releaseLock(MongoDatabase db) {
     // release lock by deleting collection entry
-    db.getCollection(lockCollectionName).deleteMany(new Document(KEY_PROP_NAME, LOCK_ENTRY_KEY_VAL));
+    db.getCollection(lockCollectionName)
+        .deleteMany(new Document(KEY_PROP_NAME, LOCK_ENTRY_KEY_VAL));
   }
 
   /**
@@ -70,7 +73,6 @@ public class LockDao {
   }
 
   public void setLockCollectionName(String lockCollectionName) {
-	this.lockCollectionName = lockCollectionName;
+    this.lockCollectionName = lockCollectionName;
   }
-
 }

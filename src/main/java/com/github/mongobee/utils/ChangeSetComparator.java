@@ -1,7 +1,6 @@
 package com.github.mongobee.utils;
 
 import com.github.mongobee.changeset.ChangeSet;
-
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Comparator;
