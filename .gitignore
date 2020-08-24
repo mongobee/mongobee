@@ -4,4 +4,5 @@ target
 .settings
 .project
 .classpath
+*.bak
 
